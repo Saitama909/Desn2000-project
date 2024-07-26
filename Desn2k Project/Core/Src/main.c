@@ -21,7 +21,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "lcd_keypad.h"
+#include "timer_config.h"
 
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -31,30 +34,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define D_PORT GPIOC
-#define LCD_D4_PIN GPIO_PIN_8
-#define LCD_D5_PIN GPIO_PIN_9
-#define LCD_D6_PIN GPIO_PIN_10
-#define LCD_D7_PIN GPIO_PIN_11
-#define E_PORT GPIOD
-#define RW_PORT GPIOC
-#define RS_PORT GPIOA
-#define LCD_E_PIN GPIO_PIN_2
-#define LCD_RW_PIN GPIO_PIN_6
-#define LCD_RS_PIN GPIO_PIN_15
-
-#define C_PORT GPIOA
-#define R_PORT GPIOB
-
-#define C1_PIN GPIO_PIN_8
-#define C2_PIN GPIO_PIN_9
-#define C3_PIN GPIO_PIN_10
-#define C4_PIN GPIO_PIN_11
-
-#define R1_PIN GPIO_PIN_11
-#define R2_PIN GPIO_PIN_12
-#define R3_PIN GPIO_PIN_13
-#define R4_PIN GPIO_PIN_14
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -66,12 +45,6 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint8_t key_map[4][4] = {{'1','2','3','A'},
-                         {'4','5','6','B'},
-                         {'7','8','9','C'},
-                         {'*','0','#','D'}};
-uint16_t colpins[4] = {C1_PIN, C2_PIN, C3_PIN, C4_PIN};
-uint16_t rowpins[4] = {R1_PIN, R2_PIN, R3_PIN, R4_PIN};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -79,15 +52,6 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void init_magic();
-void LCD_Pulse();
-void LCD_PutNibble(uint8_t nibble);
-void LCD_Data(uint8_t c);
-void LCD_Command(uint8_t c);
-void LCD_SendString(char* str);
-void LCD_SetCursor(uint8_t row, uint8_t col);
-void LCD_Clear(void);
-uint8_t scan_keypad();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -136,58 +100,11 @@ int main(void)
 
   init_magic();
 
-  LCD_SendString("Hello!");
-  LCD_SetCursor(1, 0);
-  LCD_SendString("I am a lab timer");
-  HAL_Delay(2000);
-
-  LCD_Clear();
-  LCD_SetCursor(0, 0);
-  LCD_SendString("How many timers?");
-
-  char num_timers = '\0';
-
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  char key = scan_keypad();
-
-	  if (key) {
-		  if (key != '#') {
-			  LCD_SetCursor(1, 0);
-			  LCD_Data(key);
-			  num_timers = key;
-		  } else {
-			  // Enter key pressed
-			  LCD_Clear();
-			  LCD_SetCursor(0, 0);
-
-			  if (num_timers == '1' || num_timers == '2' || num_timers == '3' || num_timers == '4') {
-				  // VALID INPUT
-				  LCD_SendString("yippee");
-			  } else {
-				  // INVALID INPUT
-				  if (num_timers == '\0') {
-					  LCD_SendString("You must enter");
-					  LCD_SetCursor(1, 0);
-					  LCD_SendString("a number");
-				  } else {
-					  LCD_SendString("Max 4 timers");
-				  }
-
-				  // Ask user again for number of timers
-				  HAL_Delay(1000);
-				  LCD_Clear();
-				  LCD_SetCursor(0, 0);
-				  LCD_SendString("How many timers?");
-
-				  // Reset number of timers
-				  num_timers = '\0';
-			  }
-		  }
-	  }
   }
   /* USER CODE END 3 */
 }
@@ -370,89 +287,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void LCD_Pulse() {
-    HAL_GPIO_WritePin(E_PORT, LCD_E_PIN, GPIO_PIN_SET);
-    HAL_Delay(5);
-    HAL_GPIO_WritePin(E_PORT, LCD_E_PIN, GPIO_PIN_RESET);
-    HAL_Delay(5);
-}
-
-void LCD_PutNibble(uint8_t nibble) {
-    HAL_GPIO_WritePin(D_PORT, LCD_D4_PIN, (nibble & 0x01));
-    HAL_GPIO_WritePin(D_PORT, LCD_D5_PIN, ((nibble >> 1) & 0x01));
-    HAL_GPIO_WritePin(D_PORT, LCD_D6_PIN, ((nibble >> 2) & 0x01));
-    HAL_GPIO_WritePin(D_PORT, LCD_D7_PIN, ((nibble >> 3) & 0x01));
-}
-
-void LCD_Data(uint8_t c) {
-    HAL_GPIO_WritePin(RS_PORT, LCD_RS_PIN, GPIO_PIN_SET);
-    LCD_PutNibble(c >> 4);
-    LCD_Pulse();
-    LCD_PutNibble(c & 0x0F);
-    LCD_Pulse();
-    HAL_GPIO_WritePin(RS_PORT, LCD_RS_PIN, GPIO_PIN_RESET);
-}
-
-void LCD_Command(uint8_t c) {
-    HAL_GPIO_WritePin(RS_PORT, LCD_RS_PIN, GPIO_PIN_RESET);
-    LCD_PutNibble(c >> 4);
-    LCD_Pulse();
-    LCD_PutNibble(c & 0x0F);
-    LCD_Pulse();
-}
-
-void init_magic() {
-    HAL_Delay(50);
-    LCD_PutNibble(0x03);
-    LCD_Pulse();
-    HAL_Delay(5);
-    LCD_PutNibble(0x03);
-    LCD_Pulse();
-    HAL_Delay(1);
-    LCD_PutNibble(0x03);
-    LCD_Pulse();
-    LCD_PutNibble(0x02);
-    LCD_Pulse();
-    LCD_Command(0x28);
-    LCD_Command(0x08);
-    LCD_Command(0x01);
-    LCD_Command(0x06);
-    LCD_Command(0x0C);
-}
-
-void LCD_SendString(char* str) {
-    while (*str) {
-        LCD_Data(*str++);
-    }
-}
-
-void LCD_SetCursor(uint8_t row, uint8_t col) {
-    uint8_t address = (row == 0) ? 0x00 : 0x40;
-    address += col;
-    LCD_Command(0x80 | address);
-}
-
-void LCD_Clear(void) {
-    LCD_Command(0x01);
-    HAL_Delay(5);
-}
-
-uint8_t scan_keypad() {
-    uint8_t ret = '\0';
-    for (int c = 0; c < 4; c++) {
-        HAL_GPIO_WritePin(C_PORT, colpins[c], GPIO_PIN_SET);
-        for (int r = 0; r < 4; r++) {
-            if (HAL_GPIO_ReadPin(R_PORT, rowpins[r])) {
-                while (HAL_GPIO_ReadPin(R_PORT, rowpins[r])) {
-                }
-                HAL_Delay(50);
-                ret = key_map[r][c];
-            }
-        }
-        HAL_GPIO_WritePin(C_PORT, colpins[c], GPIO_PIN_RESET);
-    }
-    return ret;
-}
 /* USER CODE END 4 */
 
 /**
