@@ -36,7 +36,35 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+typedef enum {
+	TIMER_MODE,
+	CLOCK_MODE
+} MainMode;
 
+typedef enum {
+	TIMER
+} TimerMode;
+
+typedef enum {
+	CLOCK,
+	ALARM,
+	COUNTDOWN,
+	STOPWATCH
+} ClockMode;
+
+typedef enum {
+	DISPLAY,
+	CONFIG
+} ModeState;
+
+typedef struct {
+	MainMode mainMode;
+	TimerMode timerMode;
+	ClockMode clockMode;
+	ModeState modeState;
+} DeviceState;
+
+extern  DeviceState deviceState;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -59,10 +87,16 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
+#define SW1_Pin GPIO_PIN_1
+#define SW1_GPIO_Port GPIOA
+#define SW1_EXTI_IRQn EXTI1_IRQn
 #define USART_TX_Pin GPIO_PIN_2
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
 #define USART_RX_GPIO_Port GPIOA
+#define SW2_Pin GPIO_PIN_4
+#define SW2_GPIO_Port GPIOA
+#define SW2_EXTI_IRQn EXTI4_IRQn
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13

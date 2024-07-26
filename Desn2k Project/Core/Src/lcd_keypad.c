@@ -5,6 +5,12 @@
  *      Author: Anna Yang
  */
 #include "lcd_keypad.h"
+uint8_t key_map[4][4] = {{'1','2','3','A'},
+                         {'4','5','6','B'},
+                         {'7','8','9','C'},
+                         {'*','0','#','D'}};
+int16_t colpins[4] = {C1_PIN, C2_PIN, C3_PIN, C4_PIN};
+uint16_t rowpins[4] = {R1_PIN, R2_PIN, R3_PIN, R4_PIN};
 
 void LCD_Pulse() {
     HAL_GPIO_WritePin(E_PORT, LCD_E_PIN, GPIO_PIN_SET);
