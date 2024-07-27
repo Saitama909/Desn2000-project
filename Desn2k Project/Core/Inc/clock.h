@@ -9,5 +9,5 @@
 #define INC_CLOCK_H_
 
 void DisplayClock();
-
+void ConfigClock();
 #endif /* INC_CLOCK_H_ */

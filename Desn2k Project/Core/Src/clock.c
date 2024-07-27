@@ -10,7 +10,16 @@
 #include "stdbool.h"
 #include "string.h"
 
-const char* week_days[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+#define DAY 0
+#define MONTH 1
+#define YEAR 2
+#define HOUR 3
+#define MINUTE 4
+#define SECOND 5
+#define WEEKDAY 6
+
+const char* week_days[] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+const int positions[6] = {0, 3, 6, 16, 19, 22};
 
 static char last_day[3] = "  ";
 static char last_month[3] = "  ";
@@ -20,28 +29,209 @@ static char last_hours[3] = "  ";
 static char last_minutes[3] = "  ";
 static char last_seconds[3] = "  ";
 static char last_am_pm[3] = "  ";
-int initial = 0;
+int initial;
+int pos;
+uint32_t buffer[7];
 
 uint8_t dec_to_bcd(uint8_t dec);
 uint8_t bcd_to_dec(uint8_t bcd);
-void Display_Date_Time();
-
+void DisplayDateTime();
+void EditTime();
+void IncreaseSelection();
+void GetCurrentTime();
+void DisplayEditedTime();
+void DecreaseSelection();
+void SetTime();
+bool IsValidDate(uint8_t day, uint8_t month, uint8_t year);
+bool IsLeapYear(uint8_t year);
 
 void DisplayClock() {
 	LCD_Reset();
 	initial  = 1;
-	Display_Date_Time();
+	DisplayDateTime();
 	initial = 0;
 	while(1) {
 		if (hasStateChanged(deviceState)) {
 			return;
 		}
-		Display_Date_Time();
+		DisplayDateTime();
 	}
 }
 
+void ConfigClock() {
+	LCD_Reset();
+	for (int i = 0; i < 7; i++) {
+		buffer[i] = 0;
+	}
+	EditTime();
+	DisplayDateTime();
+	return;
+}
+
+
+void EditTime() {
+	pos = 0;
+	GetCurrentTime();
+	DisplayEditedTime();
+	while (1) {
+		char key = scan_keypad();
+		if (key != '\0') {
+			// move position of selection
+			if (key == 'D') {
+				if (pos == 6) {
+					if (IsValidDate(buffer[DAY], buffer[MONTH], buffer[YEAR])) {
+						SetTime();
+					} else {
+						LCD_Reset();
+						LCD_SendString("INVALID DATE!");
+						HAL_Delay(2000);
+						LCD_Reset();
+					}
+					return;
+				}
+				pos++;
+			} else if (key == 'C') {
+				if (pos > 0) {
+					pos--;
+				}
+			}
+			// increase/decrease number
+			else if (key == 'A') {
+				IncreaseSelection();
+				DisplayEditedTime();
+			} else if (key == 'B') {
+				DecreaseSelection();
+				DisplayEditedTime();
+			}
+		}
+		if (hasStateChanged(deviceState)) {
+			return;
+		}
+	}
+}
+
+void SetTime() {
+	RTC_TimeTypeDef sTime = {0};
+	RTC_DateTypeDef sDate = {0};
+	sDate.Date = dec_to_bcd(buffer[DAY]);
+	sDate.Month = dec_to_bcd(buffer[MONTH]);
+	sDate.Year = dec_to_bcd(buffer[YEAR] - 2000);
+	sDate.WeekDay = buffer[WEEKDAY];
+
+	sTime.Hours = dec_to_bcd(buffer[HOUR]);
+	sTime.Minutes = dec_to_bcd(buffer[MINUTE]);
+	sTime.Seconds = dec_to_bcd(buffer[SECOND]);
+	sTime.TimeFormat = RTC_HOURFORMAT12_AM;
+
+	HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD);
+	HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD);
+}
+void GetCurrentTime() {
+	RTC_TimeTypeDef sTime = {0};
+	RTC_DateTypeDef sDate = {0};
+
+	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BCD);
+	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BCD);
+
+	buffer[0] = bcd_to_dec(sDate.Date);
+	buffer[1] = bcd_to_dec(sDate.Month);
+	buffer[2] = 2000 + bcd_to_dec(sDate.Year);
+	buffer[3] = bcd_to_dec(sTime.Hours);
+	buffer[4] = bcd_to_dec(sTime.Minutes);
+	buffer[5] = bcd_to_dec(sTime.Seconds);
+	buffer[6] = sDate.WeekDay;
+}
+
+void DisplayEditedTime() {
+		int pm_time = buffer[3];
+		// Convert 24-hour format to 12-hour format with AM/PM
+		char am_pm[3] = "AM";
+		if (buffer[3] >= 12) {
+			if (buffer[3] > 12) pm_time -= 12;
+			am_pm[0] = 'P';
+		}
+		if (buffer[3] == 0) pm_time = 12;
+
+		char date_str[17];
+		char time_str[17];
+
+		snprintf(date_str, sizeof(date_str),
+				 "%02lu/%02lu/%04lu %s",
+				 buffer[0], buffer[1], buffer[2], week_days[buffer[6] - 1]);
+
+		snprintf(time_str, sizeof(time_str),
+				 "%02lu:%02lu:%02lu %s",
+				 pm_time, buffer[4], buffer[5], am_pm);
+
+		// Clear LCD and display date and time
+		LCD_Clear();
+		LCD_SetCursor(0, 0);
+		LCD_SendString(date_str);
+		LCD_SetCursor(1, 0);  // Move to second line
+		LCD_SendString(time_str);
+}
+
+void IncreaseSelection() {
+	if (pos == DAY) {
+		if (buffer[DAY] < 31) {
+			buffer[DAY]++;
+		} else {
+			buffer[DAY] = 1;
+		}
+	} else if (pos == MONTH) {
+		if (buffer[MONTH] < 12) {
+			buffer[MONTH]++;
+		} else {
+			buffer[MONTH] = 1;
+		}
+	} else if (pos == YEAR) {
+		if (buffer[YEAR] < 2099) {
+			buffer[YEAR]++;
+		} else {
+			buffer[YEAR] = 2000;
+		}
+	} else if (pos == HOUR) {
+		if (buffer[HOUR] < 23) {
+			buffer[HOUR]++;
+		} else {
+			buffer[HOUR] = 0;
+		}
+	} else if (pos == MINUTE) {
+		if (buffer[MINUTE] < 60) {
+			buffer[MINUTE]++;
+		} else {
+			buffer[MINUTE] = 0;
+		}
+	} else if (pos == SECOND){
+		if (buffer[SECOND] < 60) {
+			buffer[SECOND]++;
+		} else {
+			buffer[SECOND] = 0;
+		}
+	} else {
+		if (buffer[WEEKDAY] < 7) {
+			buffer[WEEKDAY]++;
+		} else {
+			buffer[WEEKDAY] = 1;
+		}
+	}
+}
+
+void updateCurrentWeekday() {
+
+}
+
+void DecreaseSelection() {
+	if (buffer[pos] > 0) {
+		if (pos != WEEKDAY) {
+			buffer[pos]--;
+		} else if (buffer[pos] > 1){
+			buffer[pos]--;
+		}
+	}
+}
 // Display date and time on the LCD
-void Display_Date_Time()
+void DisplayDateTime()
 {
     RTC_TimeTypeDef sTime = {0};
     RTC_DateTypeDef sDate = {0};
@@ -78,7 +268,7 @@ void Display_Date_Time()
     snprintf(hour_str, sizeof(hour_str), "%02lu:", hours);
     snprintf(minute_str, sizeof(minute_str), "%02lu:", minutes);
     snprintf(second_str, sizeof(second_str), "%02lu", seconds);
-    snprintf(weekday_str, sizeof(weekday_str), "%s", week_days[weekday]);
+    snprintf(weekday_str, sizeof(weekday_str), "%s", week_days[weekday - 1]);
     snprintf(am_pm_str, sizeof(am_pm_str), "%s", am_pm);
 
     // Update each component if it has changed
@@ -138,5 +328,30 @@ uint8_t dec_to_bcd(uint8_t dec)
 uint8_t bcd_to_dec(uint8_t bcd)
 {
     return ((bcd >> 4) * 10) + (bcd & 0x0F);
+}
+
+const uint8_t days_in_month[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+bool IsLeapYear(uint8_t year) {
+    // Check if the year is a leap year
+    year += 2000;  // Adjust to the full year
+    return ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0));
+}
+
+bool IsValidDate(uint8_t day, uint8_t month, uint8_t year) {
+    if (month < 1 || month > 12) {
+        return false;
+    }
+
+    uint8_t max_days = days_in_month[month - 1];
+    if (month == 2 && IsLeapYear(year)) {
+        max_days = 29;
+    }
+
+    if (day < 1 || day > max_days) {
+        return false;
+    }
+
+    return true;
 }
 

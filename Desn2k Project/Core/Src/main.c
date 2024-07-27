@@ -513,20 +513,27 @@ void CheckDeviceState(){
 		}
 	} else {
 		if (deviceState.clockMode == CLOCK) {
-			LCD_SendString("Clock Mode:Clock");
-			// 	NOTE THIS CLOCK IS HARDCODED, YOU CANT GET REAL TIME UNLESS YOU USE
-			// EXTERNAL SOURCE
-			inMode = 1;
-			DisplayClock();
-			inMode = 0;
-			LCD_Reset();
-			reload = 1;
+			if (deviceState.modeState == DISPLAY) {
+				// 	NOTE THIS CLOCK IS HARDCODED, YOU CANT GET REAL TIME UNLESS YOU USE
+				// EXTERNAL SOURCE
+				inMode = 1;
+				DisplayClock();
+				inMode = 0;
+				LCD_Reset();
+				reload = 1;
+			} else {
+				inMode = 1;
+				ConfigClock();
+				inMode = 0;
+				LCD_Reset();
+				reload = 1;
+				deviceState.modeState = DISPLAY;
+			}
 		} else if (deviceState.clockMode == ALARM) {
 			LCD_SendString("Clock Mode:Alarm");
 		} else if (deviceState.clockMode == COUNTDOWN) {
 			LCD_SendString("Clock Mode:Count");
 		} else {
-			LCD_SendString("Clock Mode:Stop");
 			inMode = 1;
 			EnterStopwatch();
 			inMode = 0;
