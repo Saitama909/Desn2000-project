@@ -10,8 +10,8 @@
 #include "timer_config.h"
 
 User user = {
-		.state = CONFIGURE_TIMER_COUNT,
-		.timers = 0
+	.state = CONFIGURE_TIMER_COUNT,
+	.num_timers = 0
 };
 
 void welcome() {
@@ -25,11 +25,11 @@ void welcome() {
 	LCD_SendString("How many timers?");
 }
 
-// ONLY CALLED WHEN STATE = CHOOSE_TIMER_COUNT
-int choose_timer_count() {
+// ONLY CALLED WHEN STATE == CONFIGURE_TIMER_COUNT
+void choose_timer_count() {
 	char num_timers = '\0';
 
-	while (1) {
+	while (user.state == CONFIGURE_TIMER_COUNT) {
 		char key = scan_keypad();
 
 		if (key) {
@@ -46,7 +46,7 @@ int choose_timer_count() {
 					// VALID INPUT
 					num_timers -= '0';
 					user.state = CONFIGURE_TIMER_DURATION;
-					return num_timers;
+					user.num_timers = num_timers;
 				} else {
 					// INVALID INPUT
 					if (num_timers == '\0') {
@@ -71,22 +71,83 @@ int choose_timer_count() {
 	}
 }
 
-//void config_timer_duration(int num_timers) {
-//	if (key && state == CONFIGURE_TIMER_DURATION) {
-//		LCD_Clear();
-//		LCD_SetCursor(0, 0);
-//		for (int i = 1; i <= num_timers; i++) {
-//			char buffer[17] = "";
-//			snprintf(buffer, sizeof(buffer), "Timer %d duration", i);
-//			LCD_SendString(buffer);
-//			LCD_SetCursor(1, 0);
-//			// enter_timer_duration();
-//		}
-//	}
-//}
-//
-//void display_time(int hours, int mins, int secs) {
-//	char buffer[9];
-//	snprintf(buffer, sizeof(buffer), "%02d:%02d:%02d", hours, mins, secs);
-//	LCD_SendString(buffer);
-//}
+// ONLY CALLED WHEN STATE == CONFIGURE_TIMER_DURATION
+void config_timer_duration() {
+	LCD_Clear();
+	LCD_SetCursor(0, 0);
+	for (int i = 0; i < user.num_timers; i++) {
+		char buffer[17] = "";
+		snprintf(buffer, sizeof(buffer), "Timer %d duration", i + 1);
+		LCD_SendString(buffer);
+		LCD_SetCursor(1, 0);
+		enter_timer_duration(i);
+	}
+}
+
+void enter_timer_duration(int timer_index) {
+	char key = scan_keypad();
+	int input_secs = 0;
+	display_time(input_secs);
+
+	while (1) {
+		if (key) {
+			int num = key = '0';
+			if (num >= 0 && num <= 9) {
+				input_secs = (input_secs * 10 + num) % 100000;
+				display_time(input_secs);
+			} else if (key == '#') {
+				check_timer_duration(input_secs, timer_index);
+				break;
+			}
+		}
+	}
+}
+
+void check_timer_duration(int input_secs, int timer_index) {
+	int total_secs = input_secs;
+
+	if (total_secs < 30) {
+		LCD_Clear();
+		LCD_SetCursor(0, 0);
+		LCD_SendString("Minimum time is");
+		LCD_SetCursor(1, 0);
+		LCD_SendString("30 seconds");
+		HAL_Delay(1000);
+
+		char buffer[17] = "";
+		snprintf(buffer, sizeof(buffer), "Timer %d duration", timer_index + 1);
+		LCD_SendString(buffer);
+		LCD_SetCursor(1, 0);
+		enter_timer_duration(timer_index);
+
+	} else if (total_secs > 3600) {
+		LCD_Clear();
+		LCD_SetCursor(0, 0);
+		LCD_SendString("Maximum time is");
+		LCD_SetCursor(1, 0);
+		LCD_SendString("1 hour");
+		HAL_Delay(1000);
+
+		char buffer[17] = "";
+		snprintf(buffer, sizeof(buffer), "Timer %d duration", timer_index + 1);
+		LCD_SendString(buffer);
+		LCD_SetCursor(1, 0);
+		enter_timer_duration(timer_index);
+
+	} else {
+		user.timers[timer_index].hours = total_secs / 3600;
+		user.timers[timer_index].mins = (total_secs % 3600) / 60;
+		user.timers[timer_index].secs = total_secs % 60;
+	}
+}
+
+void display_time(int input_secs) {
+	int hours = input_secs / 3600;
+	int mins = (input_secs % 3600) / 60;
+	int secs = input_secs % 60;
+
+	char buffer[9];
+	snprintf(buffer, sizeof(buffer), "%02d:%02d:%02d", hours, mins, secs);
+
+	LCD_SendString(buffer);
+}
