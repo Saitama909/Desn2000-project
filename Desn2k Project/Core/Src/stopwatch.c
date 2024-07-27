@@ -14,7 +14,6 @@ volatile uint32_t milliseconds = 0;
 int stopwatchRunning = 0;
 
 void EnterStopwatch() {
-	int counter = 0;
 	LCD_Reset();
 	while(1) {
 		char input = scan_keypad();
