@@ -36,12 +36,44 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+typedef enum {
+	TIMER_MODE,
+	CLOCK_MODE
+} MainMode;
 
+typedef enum {
+	TIMER1,
+	TIMER2,
+	TIMER3,
+	TIMER4
+} TimerMode;
+
+typedef enum {
+	CLOCK,
+	ALARM,
+	COUNTDOWN,
+	STOPWATCH
+} ClockMode;
+
+typedef enum {
+	DISPLAY,
+	CONFIG
+} ModeState;
+
+typedef struct {
+	MainMode mainMode;
+	TimerMode timerMode;
+	ClockMode clockMode;
+	ModeState modeState;
+} DeviceState;
+
+extern DeviceState deviceState;
+extern DeviceState prevState;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+extern TIM_HandleTypeDef htim6;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -53,18 +85,29 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+extern void toggleStopwatch(void);
+extern void resetStopwatch(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
+#define B1_EXTI_IRQn EXTI15_10_IRQn
+#define SW1_Pin GPIO_PIN_1
+#define SW1_GPIO_Port GPIOA
+#define SW1_EXTI_IRQn EXTI1_IRQn
 #define USART_TX_Pin GPIO_PIN_2
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
 #define USART_RX_GPIO_Port GPIOA
+#define SW2_Pin GPIO_PIN_4
+#define SW2_GPIO_Port GPIOA
+#define SW2_EXTI_IRQn EXTI4_IRQn
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
+#define SW3_Pin GPIO_PIN_0
+#define SW3_GPIO_Port GPIOB
+#define SW3_EXTI_IRQn EXTI0_IRQn
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
@@ -73,7 +116,7 @@ void Error_Handler(void);
 #define SWO_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-
+#define SW4_Pin GPIO_PIN_1
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
