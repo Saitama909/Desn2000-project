@@ -19,7 +19,7 @@
 #define WEEKDAY 6
 
 const char* week_days[] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
-const int positions[6] = {0, 3, 6, 16, 19, 22};
+const int positions[7] = {0, 3, 6, 16, 19, 22, 11};
 
 static char last_day[3] = "  ";
 static char last_month[3] = "  ";
@@ -44,6 +44,7 @@ void DecreaseSelection();
 void SetTime();
 bool IsValidDate(uint8_t day, uint8_t month, uint8_t year);
 bool IsLeapYear(uint8_t year);
+void Flash();
 
 void DisplayClock() {
 	LCD_Reset();
@@ -70,6 +71,7 @@ void ConfigClock() {
 
 
 void EditTime() {
+	int flashCounter = 0;
 	pos = 0;
 	GetCurrentTime();
 	DisplayEditedTime();
@@ -104,9 +106,70 @@ void EditTime() {
 				DisplayEditedTime();
 			}
 		}
+		if (flashCounter == 50000) {
+			flashCounter = 0;
+			Flash();
+		}
+		flashCounter++;
 		if (hasStateChanged(deviceState)) {
 			return;
 		}
+	}
+}
+
+void Flash() {
+	char day_str[4], month_str[4], year_str[5];
+	char hour_str[4], minute_str[4], second_str[3];
+	char weekday_str[4];
+	int row = 0, col = 0;
+	int cur = positions[pos];
+	if (cur > 15) {
+		cur -= 16;
+		row = 1;
+	}
+	col = cur;
+	LCD_SetCursor(row, col);
+	if (pos == DAY) {
+		LCD_SendString("  ");
+		snprintf(day_str, sizeof(day_str), "%02lu/", buffer[DAY]);
+		LCD_SetCursor(row, col);
+		LCD_SendString(day_str);
+	} else if (pos == MONTH) {
+		LCD_SendString("  ");
+		snprintf(month_str, sizeof(month_str), "%02lu/", buffer[MONTH]);
+		LCD_SetCursor(row, col);
+		LCD_SendString(month_str);
+	} else if (pos == YEAR) {
+		LCD_SendString("    ");
+		snprintf(year_str, sizeof(year_str), "%04lu", buffer[YEAR]);
+		LCD_SetCursor(row, col);
+		LCD_SendString(year_str);
+	} else if (pos == HOUR) {
+		LCD_SendString("  ");
+		int pm_time = buffer[3];
+		// Convert 24-hour format to 12-hour format with AM/PM
+		if (buffer[3] >= 12) {
+			if (buffer[3] > 12) pm_time -= 12;
+		}
+		if (buffer[3] == 0) pm_time = 12;
+		snprintf(hour_str, sizeof(hour_str), "%02lu", pm_time);
+		LCD_SetCursor(row, col);
+		LCD_SendString(hour_str);
+	} else if (pos == MINUTE) {
+		LCD_SendString("  ");
+		snprintf(minute_str, sizeof(minute_str), "%02lu", buffer[MINUTE]);
+		LCD_SetCursor(row, col);
+		LCD_SendString(minute_str);
+	} else if (pos == SECOND) {
+		LCD_SendString("  ");
+		snprintf(second_str, sizeof(second_str), "%02lu", buffer[SECOND]);
+		LCD_SetCursor(row, col);
+		LCD_SendString(second_str);
+	} else if (pos == WEEKDAY) {
+		LCD_SendString("   ");
+		snprintf(weekday_str, sizeof(weekday_str), "%s", week_days[buffer[6] - 1]);
+		LCD_SetCursor(row, col);
+		LCD_SendString(weekday_str);
 	}
 }
 
