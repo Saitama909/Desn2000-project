@@ -76,7 +76,8 @@ void config_timer_duration() {
 	LCD_Clear();
 	LCD_SetCursor(0, 0);
 	for (int i = 0; i < user.num_timers; i++) {
-		char buffer[17] = "";
+		char buffer[22] = "";
+		// Warning number has to be less than a certain amount of characters
 		snprintf(buffer, sizeof(buffer), "Timer %d duration", i + 1);
 		LCD_SendString(buffer);
 		LCD_SetCursor(1, 0);
