@@ -107,7 +107,7 @@ int main(void)
   init_magic();
   LCD_Clear();
   LCD_SetCursor(0, 0);
-  LCD_SendString("Timer Mode: Timer");
+  LCD_SendString("Timer Mode:Tim1");
   LCD_SetCursor(1, 0);
   LCD_SendString("DISPLAY");
   while (1)
@@ -330,8 +330,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 			deviceState.mainMode = !deviceState.mainMode;
 	}
 	if (GPIO_Pin == SW2_Pin) {
-		if (deviceState.mainMode == TIMER_MODE) {
-			deviceState.timerMode = TIMER;
+		if (deviceState.mainMode == TIMER_MODE && deviceState.timerMode != TIMER4) {
+			deviceState.timerMode = deviceState.timerMode + 1;
+		} else if (deviceState.mainMode == TIMER_MODE) {
+			deviceState.timerMode = TIMER1;
 		} else if (deviceState.mainMode == CLOCK_MODE && deviceState.clockMode != STOPWATCH){
 			deviceState.clockMode = deviceState.clockMode + 1;
 		} else {
@@ -361,8 +363,14 @@ bool hasStateChanged(DeviceState currentState) {
 
 void CheckDeviceState(){
 	if (deviceState.mainMode == TIMER_MODE) {
-		if (deviceState.timerMode == TIMER) {
-			LCD_SendString("Timer Mode: Timer");
+		if (deviceState.timerMode == TIMER1) {
+			LCD_SendString("Timer Mode:Tim1");
+		} else if (deviceState.timerMode == TIMER2) {
+			LCD_SendString("Timer Mode:Tim2");
+		} else if (deviceState.timerMode == TIMER3) {
+			LCD_SendString("Timer Mode:Tim3");
+		} else {
+			LCD_SendString("Timer Mode:Tim4");
 		}
 	} else {
 		if (deviceState.clockMode == CLOCK) {

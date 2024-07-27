@@ -42,7 +42,10 @@ typedef enum {
 } MainMode;
 
 typedef enum {
-	TIMER
+	TIMER1,
+	TIMER2,
+	TIMER3,
+	TIMER4
 } TimerMode;
 
 typedef enum {
