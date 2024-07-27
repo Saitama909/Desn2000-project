@@ -73,7 +73,7 @@ extern DeviceState prevState;
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+extern TIM_HandleTypeDef htim6;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -85,12 +85,14 @@ extern DeviceState prevState;
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+extern void toggleStopwatch(void);
+extern void resetStopwatch(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
+#define B1_EXTI_IRQn EXTI15_10_IRQn
 #define SW1_Pin GPIO_PIN_1
 #define SW1_GPIO_Port GPIOA
 #define SW1_EXTI_IRQn EXTI1_IRQn

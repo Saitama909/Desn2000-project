@@ -81,18 +81,36 @@ void LCD_Clear(void) {
 }
 
 uint8_t scan_keypad() {
+    static uint32_t last_scan_time = 0;
     uint8_t ret = '\0';
-    for (int c = 0; c < 4; c++) {
-        HAL_GPIO_WritePin(C_PORT, colpins[c], GPIO_PIN_SET);
-        for (int r = 0; r < 4; r++) {
-            if (HAL_GPIO_ReadPin(R_PORT, rowpins[r])) {
-                while (HAL_GPIO_ReadPin(R_PORT, rowpins[r])) {
+    uint32_t current_time = HAL_GetTick(); // Get the current time in milliseconds
+
+    // Only perform the scan if enough time has passed since the last scan
+    if (current_time - last_scan_time >= 100) {
+        for (int c = 0; c < 4; c++) {
+            // Set the current column to high
+            HAL_GPIO_WritePin(C_PORT, colpins[c], GPIO_PIN_SET);
+
+            for (int r = 0; r < 4; r++) {
+                // Check if the key in the current row and column is pressed
+                if (HAL_GPIO_ReadPin(R_PORT, rowpins[r]) == GPIO_PIN_SET) {
+                    // Wait for the key to be released
+                    while (HAL_GPIO_ReadPin(R_PORT, rowpins[r]) == GPIO_PIN_SET) {
+                        // You can add a small delay here if needed
+                    }
+                    // Update the return value with the key pressed
+                    ret = key_map[r][c];
+                    break; // Exit the row loop as a key has been detected
                 }
-                HAL_Delay(50);
-                ret = key_map[r][c];
             }
+
+            // Reset the current column
+            HAL_GPIO_WritePin(C_PORT, colpins[c], GPIO_PIN_RESET);
         }
-        HAL_GPIO_WritePin(C_PORT, colpins[c], GPIO_PIN_RESET);
+
+        // Update the last scan time
+        last_scan_time = current_time;
     }
+
     return ret;
 }
