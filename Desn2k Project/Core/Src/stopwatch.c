@@ -18,15 +18,16 @@ void EnterStopwatch() {
 	LCD_Reset();
 	while(1) {
 		char input = scan_keypad();
-		if (input != '\0' && input == '#') {
-			updateLCD(milliseconds);
-			toggleStopwatch();
-			input = '\0';
+		if (input != '\0') {
+			if (input == '#') {
+				HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
+				toggleStopwatch();
+				updateLCD(milliseconds);
+			}
 		}
-		counter++;
-		if (counter == 100) {
+		if (stopwatchRunning) {
 			updateLCD(milliseconds);
-			counter = 0;
+			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
 		}
 	}
 }

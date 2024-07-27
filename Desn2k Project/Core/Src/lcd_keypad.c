@@ -86,7 +86,7 @@ uint8_t scan_keypad() {
     uint32_t current_time = HAL_GetTick(); // Get the current time in milliseconds
 
     // Only perform the scan if enough time has passed since the last scan
-    if (current_time - last_scan_time >= 100) {
+    if (current_time - last_scan_time >= 50) {
         for (int c = 0; c < 4; c++) {
             // Set the current column to high
             HAL_GPIO_WritePin(C_PORT, colpins[c], GPIO_PIN_SET);
