@@ -21,7 +21,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "lcd_keypad.h"
+#include "timer_config.h"
 
+#include "stdio.h"
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -31,7 +35,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -43,6 +46,8 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+DeviceState deviceState = {0};
+DeviceState previousState = {0};
 
 /* USER CODE END PV */
 
@@ -51,7 +56,8 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+void CheckDeviceState();
+bool hasStateChanged(DeviceState currentState);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -90,16 +96,31 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  HAL_GPIO_WritePin(RW_PORT, LCD_RW_PIN, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(RS_PORT, LCD_RS_PIN, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(E_PORT, LCD_E_PIN, GPIO_PIN_RESET);
+
+  init_magic();
+  LCD_Clear();
+  LCD_SetCursor(0, 0);
+  LCD_SendString("Timer Mode:Tim1");
+  LCD_SetCursor(1, 0);
+  LCD_SendString("DISPLAY");
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  if (hasStateChanged(deviceState)) {
+		  HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
+		  LCD_Clear();
+		  LCD_SetCursor(0, 0);
+		  CheckDeviceState();
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -194,6 +215,7 @@ static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 /* USER CODE BEGIN MX_GPIO_Init_1 */
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
@@ -211,6 +233,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : SW1_Pin SW2_Pin */
+  GPIO_InitStruct.Pin = SW1_Pin|SW2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /*Configure GPIO pin : LD2_Pin */
   GPIO_InitStruct.Pin = LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -218,12 +246,153 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : SW3_Pin */
+  GPIO_InitStruct.Pin = SW3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(SW3_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
+  GPIO_InitStruct.Pin = LCD_D4_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(D_PORT, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = LCD_D5_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(D_PORT, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = LCD_D6_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(D_PORT, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = LCD_D7_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(D_PORT, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = LCD_E_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(E_PORT, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = LCD_RW_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(RW_PORT, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = LCD_RS_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(RS_PORT, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = C1_PIN | C2_PIN | C3_PIN | C4_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(C_PORT, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = R1_PIN | R2_PIN | R3_PIN | R4_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(R_PORT, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	if (GPIO_Pin == SW1_Pin) {
+			deviceState.mainMode = !deviceState.mainMode;
+	}
+	if (GPIO_Pin == SW2_Pin) {
+		if (deviceState.mainMode == TIMER_MODE && deviceState.timerMode != TIMER4) {
+			deviceState.timerMode = deviceState.timerMode + 1;
+		} else if (deviceState.mainMode == TIMER_MODE) {
+			deviceState.timerMode = TIMER1;
+		} else if (deviceState.mainMode == CLOCK_MODE && deviceState.clockMode != STOPWATCH){
+			deviceState.clockMode = deviceState.clockMode + 1;
+		} else {
+			deviceState.clockMode = CLOCK;
+		}
+	}
+	if (GPIO_Pin == SW3_Pin) {
+		deviceState.modeState = !deviceState.modeState;
+	}
+}
 
+bool hasStateChanged(DeviceState currentState) {
+    bool changed = false;
+
+    if (currentState.mainMode != previousState.mainMode ||
+        currentState.timerMode != previousState.timerMode ||
+        currentState.clockMode != previousState.clockMode ||
+        currentState.modeState != previousState.modeState) {
+        changed = true;
+    }
+
+    // Update previousState to the current state
+    previousState = currentState;
+
+    return changed;
+}
+
+void CheckDeviceState(){
+	if (deviceState.mainMode == TIMER_MODE) {
+		if (deviceState.timerMode == TIMER1) {
+			LCD_SendString("Timer Mode:Tim1");
+		} else if (deviceState.timerMode == TIMER2) {
+			LCD_SendString("Timer Mode:Tim2");
+		} else if (deviceState.timerMode == TIMER3) {
+			LCD_SendString("Timer Mode:Tim3");
+		} else {
+			LCD_SendString("Timer Mode:Tim4");
+		}
+	} else {
+		if (deviceState.clockMode == CLOCK) {
+			LCD_SendString("Clock Mode:Clock");
+		} else if (deviceState.clockMode == ALARM) {
+			LCD_SendString("Clock Mode:Alarm");
+		} else if (deviceState.clockMode == COUNTDOWN) {
+			LCD_SendString("Clock Mode:Count");
+		} else {
+			LCD_SendString("Clock Mode:Stop");
+		}
+	}
+	if (deviceState.modeState == DISPLAY) {
+		LCD_SetCursor(1, 0);
+		LCD_SendString("DISPLAY");
+	} else {
+		LCD_SetCursor(1, 0);
+		LCD_SendString("CONFIG");
+	}
+
+
+}
 /* USER CODE END 4 */
 
 /**
@@ -237,6 +406,7 @@ void Error_Handler(void)
   __disable_irq();
   while (1)
   {
+
   }
   /* USER CODE END Error_Handler_Debug */
 }
