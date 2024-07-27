@@ -15,6 +15,7 @@ int stopwatchRunning = 0;
 
 void EnterStopwatch() {
 	LCD_Reset();
+	updateLCD(milliseconds);
 	while(1) {
 		char input = scan_keypad();
 		if (input != '\0') {
@@ -22,6 +23,9 @@ void EnterStopwatch() {
 				HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
 				toggleStopwatch();
 				updateLCD(milliseconds);
+			}
+			if (input == 'D') {
+				return;
 			}
 		}
 		if (stopwatchRunning) {
