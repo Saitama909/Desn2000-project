@@ -428,6 +428,7 @@ void CheckDeviceState(){
 		} else {
 			LCD_SendString("Clock Mode:Stop");
 			EnterStopwatch();
+			LCD_Reset();
 		}
 	}
 	if (deviceState.modeState == DISPLAY) {
