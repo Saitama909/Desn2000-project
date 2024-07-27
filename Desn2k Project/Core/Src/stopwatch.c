@@ -13,6 +13,8 @@
 volatile uint32_t milliseconds = 0;
 int stopwatchRunning = 0;
 
+void toggleStopwatch(void);
+
 void EnterStopwatch() {
 	LCD_Reset();
 	updateLCD(milliseconds);
@@ -24,13 +26,13 @@ void EnterStopwatch() {
 				toggleStopwatch();
 				updateLCD(milliseconds);
 			}
-			if (input == 'D') {
-				return;
-			}
 		}
 		if (stopwatchRunning) {
 			updateLCD(milliseconds);
 			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
+		}
+		if (hasStateChanged(deviceState)) {
+			return;
 		}
 	}
 }

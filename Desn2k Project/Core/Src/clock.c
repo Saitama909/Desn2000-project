@@ -20,19 +20,21 @@ static char last_hours[3] = "  ";
 static char last_minutes[3] = "  ";
 static char last_seconds[3] = "  ";
 static char last_am_pm[3] = "  ";
+int initial = 0;
+
 uint8_t dec_to_bcd(uint8_t dec);
 uint8_t bcd_to_dec(uint8_t bcd);
 void Display_Date_Time();
 
+
 void DisplayClock() {
 	LCD_Reset();
+	initial  = 1;
 	Display_Date_Time();
+	initial = 0;
 	while(1) {
-		char input = scan_keypad();
-		if (input != '\0') {
-			if (input == 'D') {
-				return;
-			}
+		if (hasStateChanged(deviceState)) {
+			return;
 		}
 		Display_Date_Time();
 	}
@@ -80,49 +82,49 @@ void Display_Date_Time()
     snprintf(am_pm_str, sizeof(am_pm_str), "%s", am_pm);
 
     // Update each component if it has changed
-    if (strcmp(day_str, last_day) != 0) {
+    if (strcmp(day_str, last_day) != 0 || initial == 1) {
         LCD_SetCursor(0, 0); // Set cursor to day position
         LCD_SendString(day_str);
         strcpy(last_day, day_str);
     }
 
-    if (strcmp(month_str, last_month) != 0) {
+    if (strcmp(month_str, last_month) != 0 || initial == 1) {
         LCD_SetCursor(0, 3); // Set cursor to month position
         LCD_SendString(month_str);
         strcpy(last_month, month_str);
     }
 
-    if (strcmp(year_str, last_year) != 0) {
+    if (strcmp(year_str, last_year) != 0 || initial == 1) {
         LCD_SetCursor(0, 6); // Set cursor to year position
         LCD_SendString(year_str);
         strcpy(last_year, year_str);
     }
 
-    if (strcmp(weekday_str, last_weekday) != 0) {
+    if (strcmp(weekday_str, last_weekday) != 0 || initial == 1) {
         LCD_SetCursor(0, 11); // Set cursor to weekday position
         LCD_SendString(weekday_str);
         strcpy(last_weekday, weekday_str);
     }
 
-    if (strcmp(hour_str, last_hours) != 0) {
+    if (strcmp(hour_str, last_hours) != 0 || initial == 1) {
         LCD_SetCursor(1, 0); // Set cursor to hours position
         LCD_SendString(hour_str);
         strcpy(last_hours, hour_str);
     }
 
-    if (strcmp(minute_str, last_minutes) != 0) {
+    if (strcmp(minute_str, last_minutes) != 0 || initial == 1) {
         LCD_SetCursor(1, 3); // Set cursor to minutes position
         LCD_SendString(minute_str);
         strcpy(last_minutes, minute_str);
     }
 
-    if (strcmp(second_str, last_seconds) != 0) {
+    if (strcmp(second_str, last_seconds) != 0 || initial == 1) {
         LCD_SetCursor(1, 6); // Set cursor to seconds position
         LCD_SendString(second_str);
         strcpy(last_seconds, second_str);
     }
 
-    if (strcmp(am_pm_str, last_am_pm) != 0) {
+    if (strcmp(am_pm_str, last_am_pm) != 0 || initial == 1) {
         LCD_SetCursor(1, 9); // Set cursor to AM/PM position
         LCD_SendString(am_pm_str);
         strcpy(last_am_pm, am_pm_str);

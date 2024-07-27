@@ -54,7 +54,8 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 DeviceState deviceState = {0};
 DeviceState previousState = {0};
-
+int inMode = 0;
+int reload = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -125,7 +126,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if (hasStateChanged(deviceState)) {
+	  if (hasStateChanged(deviceState) || reload) {
+		  if (reload) {
+			  reload = 0;
+		  }
 		  HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
 		  LCD_Clear();
 		  LCD_SetCursor(0, 0);
@@ -510,16 +514,24 @@ void CheckDeviceState(){
 	} else {
 		if (deviceState.clockMode == CLOCK) {
 			LCD_SendString("Clock Mode:Clock");
+			// 	NOTE THIS CLOCK IS HARDCODED, YOU CANT GET REAL TIME UNLESS YOU USE
+			// EXTERNAL SOURCE
+			inMode = 1;
 			DisplayClock();
+			inMode = 0;
 			LCD_Reset();
+			reload = 1;
 		} else if (deviceState.clockMode == ALARM) {
 			LCD_SendString("Clock Mode:Alarm");
 		} else if (deviceState.clockMode == COUNTDOWN) {
 			LCD_SendString("Clock Mode:Count");
 		} else {
 			LCD_SendString("Clock Mode:Stop");
+			inMode = 1;
 			EnterStopwatch();
+			inMode = 0;
 			LCD_Reset();
+			reload = 1;
 		}
 	}
 //// 	for testing

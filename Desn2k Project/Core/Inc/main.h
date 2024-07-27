@@ -28,7 +28,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f3xx_hal.h"
-
+#include "stdbool.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -86,8 +86,7 @@ extern RTC_HandleTypeDef hrtc;
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-extern void toggleStopwatch(void);
-extern void resetStopwatch(void);
+extern bool hasStateChanged(DeviceState currentState);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
