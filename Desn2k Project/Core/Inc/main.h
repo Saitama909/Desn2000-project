@@ -64,7 +64,8 @@ typedef struct {
 	ModeState modeState;
 } DeviceState;
 
-extern  DeviceState deviceState;
+extern DeviceState deviceState;
+extern DeviceState prevState;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -99,6 +100,9 @@ void Error_Handler(void);
 #define SW2_EXTI_IRQn EXTI4_IRQn
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
+#define SW3_Pin GPIO_PIN_0
+#define SW3_GPIO_Port GPIOB
+#define SW3_EXTI_IRQn EXTI0_IRQn
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
@@ -107,7 +111,7 @@ void Error_Handler(void);
 #define SWO_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-
+#define SW4_Pin GPIO_PIN_1
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

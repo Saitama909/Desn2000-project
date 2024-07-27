@@ -24,7 +24,8 @@
 #include "lcd_keypad.h"
 #include "timer_config.h"
 
-#include <stdio.h>
+#include "stdio.h"
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,6 +47,7 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 DeviceState deviceState = {0};
+DeviceState previousState = {0};
 
 /* USER CODE END PV */
 
@@ -54,6 +56,8 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
+void CheckDeviceState();
+bool hasStateChanged(DeviceState currentState);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -101,12 +105,22 @@ int main(void)
   HAL_GPIO_WritePin(E_PORT, LCD_E_PIN, GPIO_PIN_RESET);
 
   init_magic();
-
+  LCD_Clear();
+  LCD_SetCursor(0, 0);
+  LCD_SendString("Timer Mode: Timer");
+  LCD_SetCursor(1, 0);
+  LCD_SendString("DISPLAY");
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  if (hasStateChanged(deviceState)) {
+		  HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
+		  LCD_Clear();
+		  LCD_SetCursor(0, 0);
+		  CheckDeviceState();
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -201,6 +215,7 @@ static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 /* USER CODE BEGIN MX_GPIO_Init_1 */
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
@@ -231,7 +246,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : SW3_Pin */
+  GPIO_InitStruct.Pin = SW3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(SW3_GPIO_Port, &GPIO_InitStruct);
+
   /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
   HAL_NVIC_SetPriority(EXTI1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI1_IRQn);
 
@@ -303,17 +327,63 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if (GPIO_Pin == SW1_Pin) {
-		deviceState.mainMode = !deviceState.mainMode;
+			deviceState.mainMode = !deviceState.mainMode;
 	}
 	if (GPIO_Pin == SW2_Pin) {
 		if (deviceState.mainMode == TIMER_MODE) {
-			deviceState.timerMode == TIMER;
+			deviceState.timerMode = TIMER;
 		} else if (deviceState.mainMode == CLOCK_MODE && deviceState.clockMode != STOPWATCH){
-			deviceState.clockMode == deviceState.clockMode + 1;
+			deviceState.clockMode = deviceState.clockMode + 1;
 		} else {
-			deviceState.clockMode == CLOCK;
+			deviceState.clockMode = CLOCK;
 		}
 	}
+	if (GPIO_Pin == SW3_Pin) {
+		deviceState.modeState = !deviceState.modeState;
+	}
+}
+
+bool hasStateChanged(DeviceState currentState) {
+    bool changed = false;
+
+    if (currentState.mainMode != previousState.mainMode ||
+        currentState.timerMode != previousState.timerMode ||
+        currentState.clockMode != previousState.clockMode ||
+        currentState.modeState != previousState.modeState) {
+        changed = true;
+    }
+
+    // Update previousState to the current state
+    previousState = currentState;
+
+    return changed;
+}
+
+void CheckDeviceState(){
+	if (deviceState.mainMode == TIMER_MODE) {
+		if (deviceState.timerMode == TIMER) {
+			LCD_SendString("Timer Mode: Timer");
+		}
+	} else {
+		if (deviceState.clockMode == CLOCK) {
+			LCD_SendString("Clock Mode:Clock");
+		} else if (deviceState.clockMode == ALARM) {
+			LCD_SendString("Clock Mode:Alarm");
+		} else if (deviceState.clockMode == COUNTDOWN) {
+			LCD_SendString("Clock Mode:Count");
+		} else {
+			LCD_SendString("Clock Mode:Stop");
+		}
+	}
+	if (deviceState.modeState == DISPLAY) {
+		LCD_SetCursor(1, 0);
+		LCD_SendString("DISPLAY");
+	} else {
+		LCD_SetCursor(1, 0);
+		LCD_SendString("CONFIG");
+	}
+
+
 }
 /* USER CODE END 4 */
 
