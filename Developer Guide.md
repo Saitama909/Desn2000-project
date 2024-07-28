@@ -1,44 +1,117 @@
-## State Definition 
+Developer's Guide: Timer and Clock Functionality
+------------------------------------------------
 
-Uses struct `DeviceState` to store the state of the timer with 4 fields `mainMode`, `timerMode`, `clockMode`, `modeState` of type enum `MainMode`, `TimerMode`, `ClockMode` and `ModeState` respectively
+### State Definition
 
-The `mainMode` field corresponds to the two main functionalities, with each main modes defined as 
-- `TIMER_MODE`,
-- `CLOCK_MODE`
-  
-of type enum `MainMode`
+The `DeviceState` struct is used to store the state of the timer. It consists of four fields:
 
-The `timerMode` field corresponds to the main subfunctions when `mainMode` is in `TIMER_MODE` (the timer mode), namely the four timers.
+-   `mainMode`: Indicates the primary mode, which can be either `TIMER_MODE` or `CLOCK_MODE`. This is of type `MainMode`.
+-   `timerMode`: Indicates the subfunctions available in `TIMER_MODE`. This is of type `TimerMode`.
+-   `clockMode`: Indicates the subfunctions available in `CLOCK_MODE`. This is of type `ClockMode`. The available modes are `CLOCK`, `ALARM`, `COUNTDOWN`, and `STOPWATCH`.
+-   `modeState`: Indicates whether the subfunction is in the displaying or configuring state. This is of type `ModeState` and can be either `DISPLAY` or `CONFIG`.
 
-The `clockMode` field correspond to the main subfunctions when `mainMode` is in `CLOCK_MODE` (the standard clock mode), namely the clcok, alarm, countdown timer and stopwatch which are defined as `CLOCK` `ALARM`, `COUNTDOWN` and `STOPWATCH` of type enum `ClockMode` respectively.
- 
-The last field `modeState` corresponds to whether the subfunction is   in the displaying or configuring state, defined as `DISPLAY` and `CONIFG` of type enum `ModeState` respectively.
+### Enumerations
 
-## Standard Clock modes
-### Clock
-Functionality Overview:
-A standard clock that displays the time and is configurable. It's format is in `day/month/year weekday` on the top row of the LCD and `hour:minute:second am/pm` on the bottom row of the LCD
+#### MainMode
 
-Software Documentation:
-Most of the code responsible for clock functionality is in the `clock.c` file, with its `DISPLAY` and `CONFIG` states corresponding to the `DisplayClock` and `ConfigClock` functions respectively. 
+c
 
-Clock Subsystem and function/s:
-The `DISPLAY` state subsystem is comprised of the **LCD**, **Shift Register LEDs** and the **Micro-controller**
+Copy code
 
-The `CONFIG` state subsystem is comprised of the **LCD**, **Keypad** and the **Micro-controller**
+`typedef enum {
+    TIMER_MODE,
+    CLOCK_MODE
+} MainMode;`
 
-- Initially starts configuration through `void ConfigClock()` at the current time
-- Enters `void EditTime()` and selects the day as the first component to configure, with the selected component indicated by the flashing of LCD of that component (`void Flash()`)
-- Uses keypad to configure with the key presses being
-  - 'A' to increment the selection
-  - 'B' to decrement the selection
-  - 'C' to move the selection back an element (e.g. go from month to day)
-  - 'D' to move the selection to the next element (e.g. go from day to month)
-- Upon pressing moving the selection the next element whilst at the last element (configuring the weekday) the new time will be set as the current time unless it is an invalid time 
-  - If the new time is valid the current time will be updated indicated by the LCD message `Time Changed!`
-  - If the new time is invalid the current time will not be updated indicated by the LCD message `Invalid Date!`
-- The `void ConfigClock()` will be exited and return to the `CheckDeviceState()` function in `main.c` and `deviceState.modeState` will be updated to `DISPLAY` with the timer will enter the display state.
+#### TimerMode
 
+c
 
-Key features:
-For the clock functionality both `DISPLAY` and `CONFIG` states utilise the `RTC` Timer, to retrieve the current time initialised in `main.c` through the `hrtc` in the `static void MX_RTC_Init(void)` function. When the timer is first switched on the default display time will be this value of `hrtc`
+Copy code
+
+`typedef enum {
+    TIMER_RUNNING // Define other timer modes as needed
+} TimerMode;`
+
+#### ClockMode
+
+c
+
+Copy code
+
+`typedef enum {
+    CLOCK,
+    ALARM,
+    COUNTDOWN,
+    STOPWATCH
+} ClockMode;`
+
+#### ModeState
+
+c
+
+Copy code
+
+`typedef enum {
+    DISPLAY,
+    CONFIG
+} ModeState;`
+
+### DeviceState Struct
+
+c
+
+Copy code
+
+`typedef struct {
+    MainMode mainMode;
+    TimerMode timerMode;
+    ClockMode clockMode;
+    ModeState modeState;
+} DeviceState;`
+
+### Standard Clock Modes
+
+#### Overview
+
+The clock mode has two states: `DISPLAY` and `CONFIG`. It displays the time in the format `day/month/year weekday` on the top row of the LCD and `hour:minute:second am/pm` on the bottom row.
+
+#### Software Structure
+
+-   **Main Functionality File**: `clock.c`
+-   **State Functions**:
+    -   `DISPLAY`: Handled by `void DisplayClock()`.
+    -   `CONFIG`: Handled by `void ConfigClock()`.
+
+#### Subsystems
+
+-   **DISPLAY State**:
+    -   Components: **LCD**, **Shift Register LEDs**, **Micro-controller**.
+-   **CONFIG State**:
+    -   Components: **LCD**, **Keypad**, **Micro-controller**.
+
+### Clock Functionality
+
+#### Configuring the Clock
+
+1.  **Initial Configuration**:
+    -   Begins with `void ConfigClock()`, starting at the current time.
+2.  **Editing Time**:
+    -   Enters `void EditTime()`, selecting the day as the first component to configure.
+    -   Selected component flashes on the LCD (`void Flash()`).
+3.  **Keypad Controls**:
+    -   'A': Increment the selection.
+    -   'B': Decrement the selection.
+    -   'C': Move back an element (e.g., month to day).
+    -   'D': Move forward an element (e.g., day to month).
+4.  **Setting the Time**:
+    -   After configuring the last element (weekday), the new time is validated.
+        -   If valid, the current time is updated, and the LCD shows `Time Changed!`.
+        -   If invalid, the current time is not updated, and the LCD shows `Invalid Date!`.
+5.  **Returning to Display State**:
+    -   Exits `ConfigClock()`, returns to `CheckDeviceState()` in `main.c`, and updates `deviceState.modeState` to `DISPLAY`.
+
+### Key Features
+
+-   **RTC Timer**: Both `DISPLAY` and `CONFIG` states use the `RTC` Timer to retrieve the current time. It is initialized in `main.c` through the `hrtc` in the `static void MX_RTC_Init(void)` function.
+-   **Initial Display Time**: When the timer is first switched on, the default display time is set to the value of `hrtc`.
