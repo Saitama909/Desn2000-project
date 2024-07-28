@@ -22,7 +22,10 @@ typedef enum {
 #### TimerMode
 ```c
 typedef enum {
-    TIMER_RUNNING // Define other timer modes as needed
+    TIM1,
+    TIM2,
+    TIM3,
+    TIM4   
 } TimerMode;
 ```
 
