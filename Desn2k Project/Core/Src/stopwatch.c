@@ -55,11 +55,6 @@ void updateLCD(uint32_t count) {
 	LCD_SendString(buffer);
 }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	milliseconds++;
-}
-
-
 void toggleStopwatch(void) {
 	stopwatchRunning = !stopwatchRunning;
 	if (stopwatchRunning) {
