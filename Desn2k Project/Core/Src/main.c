@@ -120,7 +120,8 @@ int main(void)
   HAL_GPIO_WritePin(E_PORT, LCD_E_PIN, GPIO_PIN_RESET);
 
   init_magic();
-  
+  shiftByte(0);
+  latchData();
   LCD_Clear();
   LCD_SetCursor(0, 0);
   LCD_SendString("Timer Mode:Tim1");

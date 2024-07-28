@@ -10,4 +10,6 @@
 
 void DisplayClock();
 void ConfigClock();
+void shiftByte(uint16_t data);
+void latchData(void);
 #endif /* INC_CLOCK_H_ */
