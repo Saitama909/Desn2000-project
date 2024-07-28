@@ -28,7 +28,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f3xx_hal.h"
-#include "stdbool.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -74,6 +74,7 @@ extern DeviceState prevState;
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 extern TIM_HandleTypeDef htim6;
+extern TIM_HandleTypeDef htim7;
 extern RTC_HandleTypeDef hrtc;
 /* USER CODE END EC */
 
@@ -82,13 +83,15 @@ extern RTC_HandleTypeDef hrtc;
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 extern void toggleStopwatch(void);
 extern void resetStopwatch(void);
-extern bool hasStateChanged(DeviceState currentState);
+//extern bool hasStateChanged(DeviceState currentState);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

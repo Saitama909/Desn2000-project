@@ -16,10 +16,26 @@ enum State {
 };
 
 typedef struct {
+    char key;
+    const char *chars;
+} KeyMap;
+
+typedef struct {
+    uint16_t freq;
+    uint16_t duration;
+} Note;
+
+typedef struct {
+    Note notes[16];
+    uint16_t num_notes;
+} Song;
+
+typedef struct {
 	int hours;
 	int mins;
 	int secs;
 	char name[17];
+	Song alert;
 } Timer;
 
 typedef struct {
@@ -28,10 +44,6 @@ typedef struct {
 	Timer timers[4];
 } User;
 
-typedef struct {
-    char key;
-    const char *chars;
-} KeyMap;
 
 void welcome();
 void choose_timer_count();
@@ -43,5 +55,9 @@ void display_time(int input_secs);
 
 void enter_timer_name(int timer_index);
 void t9_typing(int key, char *input_text);
+
+void choose_timer_alert(int timer_index);
+void init_alerts();
+void play_alert(Song *song);
 
 #endif /* SRC_TIMER_CONFIG_H_ */
