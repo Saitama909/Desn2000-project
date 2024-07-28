@@ -37,6 +37,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define DEBOUNCE_DELAY_MS 50  // Debounce delay in milliseconds
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -52,8 +53,8 @@ TIM_HandleTypeDef htim6;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-DeviceState deviceState = {0};
-DeviceState previousState = {0};
+volatile DeviceState deviceState = {0};
+volatile DeviceState previousState = {0};
 
 int inMode = 0;
 int reload = 0;
@@ -468,25 +469,41 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-	if (GPIO_Pin == SW1_Pin) {
-			deviceState.mainMode = !deviceState.mainMode;
-	}
-	if (GPIO_Pin == SW2_Pin) {
-		if (deviceState.mainMode == TIMER_MODE && deviceState.timerMode != TIMER4) {
-			deviceState.timerMode = deviceState.timerMode + 1;
-		} else if (deviceState.mainMode == TIMER_MODE) {
-			deviceState.timerMode = TIMER1;
-		} else if (deviceState.mainMode == CLOCK_MODE && deviceState.clockMode != STOPWATCH){
-			deviceState.clockMode = deviceState.clockMode + 1;
-		} else {
-			deviceState.clockMode = CLOCK;
-		}
-	}
-	if (GPIO_Pin == SW3_Pin) {
-		deviceState.modeState = !deviceState.modeState;
-	}
+
+
+volatile uint32_t last_interrupt_time_sw1 = 0;
+volatile uint32_t last_interrupt_time_sw2 = 0;
+volatile uint32_t last_interrupt_time_sw3 = 0;
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+    uint32_t current_time = HAL_GetTick();
+
+    if (GPIO_Pin == SW1_Pin) {
+        if (current_time - last_interrupt_time_sw1 >= DEBOUNCE_DELAY_MS) {
+            last_interrupt_time_sw1 = current_time;
+            deviceState.mainMode = !deviceState.mainMode;
+        }
+    } else if (GPIO_Pin == SW2_Pin) {
+        if (current_time - last_interrupt_time_sw2 >= DEBOUNCE_DELAY_MS) {
+            last_interrupt_time_sw2 = current_time;
+            if (deviceState.mainMode == TIMER_MODE && deviceState.timerMode != TIMER4) {
+                deviceState.timerMode = deviceState.timerMode + 1;
+            } else if (deviceState.mainMode == TIMER_MODE) {
+                deviceState.timerMode = TIMER1;
+            } else if (deviceState.mainMode == CLOCK_MODE && deviceState.clockMode != STOPWATCH) {
+                deviceState.clockMode = deviceState.clockMode + 1;
+            } else {
+                deviceState.clockMode = CLOCK;
+            }
+        }
+    } else if (GPIO_Pin == SW3_Pin) {
+        if (current_time - last_interrupt_time_sw3 >= DEBOUNCE_DELAY_MS) {
+            last_interrupt_time_sw3 = current_time;
+            deviceState.modeState = !deviceState.modeState;
+        }
+    }
 }
+
 
 bool hasStateChanged(DeviceState currentState) {
     bool changed = false;

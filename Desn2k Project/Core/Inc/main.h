@@ -67,8 +67,8 @@ typedef struct {
 	ModeState modeState;
 } DeviceState;
 
-extern DeviceState deviceState;
-extern DeviceState prevState;
+extern volatile DeviceState deviceState;
+extern volatile DeviceState prevState;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

@@ -21,13 +21,13 @@ void EnterStopwatch() {
 
 	while(1) {
 		char input = scan_keypad();
-		if (input != '\0') {
-			if (input == '#') {
-				HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
-				toggleStopwatch();
-				updateLCD(milliseconds);
-			}
+
+		if (input == '#') {
+			toggleStopwatch();
+		} if (input == '*') {
+			resetStopwatch();
 		}
+		updateLCD(milliseconds);
 		if (stopwatchRunning) {
 			updateLCD(milliseconds);
 			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);

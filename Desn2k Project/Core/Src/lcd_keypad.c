@@ -6,6 +6,7 @@
  */
 #include "lcd_keypad.h"
 
+
 uint8_t key_map[4][4] = {{'1','2','3','A'},
                          {'4','5','6','B'},
                          {'7','8','9','C'},
@@ -87,37 +88,29 @@ void LCD_ClearLine(int line) {
 	}
 }
 
+
 uint8_t scan_keypad() {
-    static uint32_t last_scan_time = 0;
     uint8_t ret = '\0';
-    uint32_t current_time = HAL_GetTick(); // Get the current time in milliseconds
 
-    // Only perform the scan if enough time has passed since the last scan
-    if (current_time - last_scan_time >= 50) {
-        for (int c = 0; c < 4; c++) {
-            // Set the current column to high
-            HAL_GPIO_WritePin(C_PORT, colpins[c], GPIO_PIN_SET);
+    for (int c = 0; c < 4; c++) {
+        // Set the current column to high
+        HAL_GPIO_WritePin(C_PORT, colpins[c], GPIO_PIN_SET);
 
-            for (int r = 0; r < 4; r++) {
-                // Check if the key in the current row and column is pressed
-                if (HAL_GPIO_ReadPin(R_PORT, rowpins[r]) == GPIO_PIN_SET) {
-                    // Wait for the key to be released
-                    while (HAL_GPIO_ReadPin(R_PORT, rowpins[r]) == GPIO_PIN_SET) {
-                    }
-                    // Update the return value with the key pressed
-                    ret = key_map[r][c];
-                    HAL_GPIO_WritePin(C_PORT, colpins[c], GPIO_PIN_RESET);
-                    break; // Exit the row loop as a key has been detected
-                }
+        for (int r = 0; r < 4; r++) {
+            // Check if the key in the current row and column is pressed
+            if (HAL_GPIO_ReadPin(R_PORT, rowpins[r]) == GPIO_PIN_SET) {
+				// Update the return value with the key pressed
+				ret = key_map[r][c];
+				break; // Exit the row loop as a key has been detected
             }
-
-            // Reset the current column
-            HAL_GPIO_WritePin(C_PORT, colpins[c], GPIO_PIN_RESET);
         }
 
-        // Update the last scan time
-        last_scan_time = current_time;
+        // Reset the current column
+        HAL_GPIO_WritePin(C_PORT, colpins[c], GPIO_PIN_RESET);
+
     }
 
     return ret;
 }
+
+
