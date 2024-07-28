@@ -86,6 +86,8 @@ extern RTC_HandleTypeDef hrtc;
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+extern void toggleStopwatch(void);
+extern void resetStopwatch(void);
 extern bool hasStateChanged(DeviceState currentState);
 /* USER CODE END EFP */
 

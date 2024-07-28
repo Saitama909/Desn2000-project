@@ -18,6 +18,7 @@ void toggleStopwatch(void);
 void EnterStopwatch() {
 	LCD_Reset();
 	updateLCD(milliseconds);
+
 	while(1) {
 		char input = scan_keypad();
 		if (input != '\0') {

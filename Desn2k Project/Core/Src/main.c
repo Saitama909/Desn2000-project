@@ -54,6 +54,7 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 DeviceState deviceState = {0};
 DeviceState previousState = {0};
+
 int inMode = 0;
 int reload = 0;
 /* USER CODE END PV */
@@ -116,11 +117,14 @@ int main(void)
   HAL_GPIO_WritePin(E_PORT, LCD_E_PIN, GPIO_PIN_RESET);
 
   init_magic();
+  
   LCD_Clear();
   LCD_SetCursor(0, 0);
   LCD_SendString("Timer Mode:Tim1");
   LCD_SetCursor(1, 0);
   LCD_SendString("DISPLAY");
+  // welcome();
+
   while (1)
   {
     /* USER CODE END WHILE */

@@ -50,6 +50,7 @@ void LCD_Command(uint8_t c);
 void LCD_SendString(char* str);
 void LCD_SetCursor(uint8_t row, uint8_t col);
 void LCD_Clear(void);
+void LCD_ClearLine(int line);
 uint8_t scan_keypad();
 
 #endif /* SRC_LCD_KEYPAD_H_ */

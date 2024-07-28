@@ -80,6 +80,13 @@ void LCD_Clear(void) {
     HAL_Delay(5);
 }
 
+void LCD_ClearLine(int line) {
+	LCD_SetCursor(line, 0);
+	for (int i = 0; i < 16; i++) {
+		LCD_SendString(" ");
+	}
+}
+
 uint8_t scan_keypad() {
     static uint32_t last_scan_time = 0;
     uint8_t ret = '\0';
