@@ -74,9 +74,9 @@ The clock mode has two states: `DISPLAY` and `CONFIG`. It displays the time in t
 #### Subsystems
 
 - **DISPLAY State**:
-  - Components: **LCD**, **Shift Register LEDs**, **Micro-controller**.
+  - Components: **LCD**, **Shift Register LEDs**, **Microcontroller**.
 - **CONFIG State**:
-  - Components: **LCD**, **Keypad**, **Micro-controller**.
+  - Components: **LCD**, **Keypad**, **Microcontroller**.
 
 ### Clock Functionality
 #### Displaying the Clock
@@ -113,5 +113,45 @@ The clock mode has two states: `DISPLAY` and `CONFIG`. It displays the time in t
 - **Initial Display Time**: When the timer is first switched on, the default display time is set to the value of `hrtc`.
 
 ### Hardware Components
+#### Microcontroller
+**Pin Wirings**
+All pin wirings follow this document:
+https://github.com/Saitama909/Desn2000-project/blob/main/Board%20Pin%20Wiring%20Documentation.pdf
+Naming of the corresponding pins for each I/O Device are shown below:
+
+| I/O Device                  | Pin Name    |
+|-----------------------------|-------------|
+| Button SW1                  | SW1_Pin     |
+| Button SW2                  | SW2_Pin     |
+| Button SW3                  | SW3_Pin     |
+| Shift Register RCLK (latch) | RCLK_Pin    |
+| Shift Register SRCLK (serial clock) | SRCLK_Pin |
+| Shift Register SER (data in) | SER_Pin     |
+| ROW1                        | R1_PIN      |
+| ROW2                        | R2_PIN      |
+| ROW3                        | R3_PIN      |
+| ROW4                        | R4_PIN      |
+| COL1                        | C1_PIN      |
+| COL2                        | C2_PIN      |
+| COL3                        | C3_PIN      |
+| COL4                        | C4_PIN      |
+| LCD Data D4                 | LCD_D4_PIN  |
+| LCD Data D5                 | LCD_D5_PIN  |
+| LCD Data D6                 | LCD_D6_PIN  |
+| LCD Data D7                 | LCD_D7_PIN  |
+| LCD Control E               | LCD_E_PIN   |
+| LCD Control RW              | LCD_RW_PIN  |
+| LCD Control RS              | LCD_RS_PIN  |
+| COIL A                      | COIL_A_Pin  |
+| COIL B                      | COIL_B_Pin  |
+| COIL C                      | COIL_C_Pin  |
+| COIL D                      | COIL_D_Pin  |
+| LED LD2                     | LD2_Pin     |
+
+
 #### Keypad
+A 4x4 Keypad with the 4 row pins conifigured as inputs and the 4 column pins configured as outputs. 
+**Keypad Input**
+Implemeneted through setting each of the column pins to a high state and checking which row pin is now in a high state
+
 
