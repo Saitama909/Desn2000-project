@@ -32,7 +32,8 @@ static char last_am_pm[3] = "  ";
 int initial;
 int pos;
 uint32_t buffer[7];
-
+int first_time_running = 1;
+int last_hour;
 uint8_t dec_to_bcd(uint8_t dec);
 uint8_t bcd_to_dec(uint8_t bcd);
 void DisplayDateTime();
@@ -55,7 +56,6 @@ void DisplayClock() {
 	LCD_Reset();
 	initial  = 1;
 	DisplayDateTime();
-	initial = 0;
 	while(1) {
 		if (hasStateChanged(deviceState)) {
 			return;
@@ -146,11 +146,13 @@ void EditTime() {
 						LCD_SendString("Time Changed!");
 						HAL_Delay(3000);
 						LCD_Reset();
+						initial = 1;
 					} else {
 						LCD_Reset();
 						LCD_SendString("Invalid Date!");
 						HAL_Delay(3000);
 						LCD_Reset();
+						initial = 1;
 					}
 					return;
 				}
@@ -343,10 +345,6 @@ void IncreaseSelection() {
 	}
 }
 
-void updateCurrentWeekday() {
-
-}
-
 void DecreaseSelection() {
 	if (buffer[pos] > 0) {
 		if (pos != WEEKDAY) {
@@ -444,6 +442,28 @@ void DisplayDateTime()
         LCD_SetCursor(1, 9); // Set cursor to AM/PM position
         LCD_SendString(am_pm_str);
         strcpy(last_am_pm, am_pm_str);
+    }
+
+    if (first_time_running == 1) {
+    	last_hour = hours;
+        Motor(342 * hours);
+        first_time_running = 0;
+    } else {
+    	if (last_hour != hours) {
+    		if (hours > 12) {
+    			hours -= 12;
+    		}
+    		if (last_hour > hours) {
+    			Motor(342 * (12 - last_hour + hours));
+    		} else {
+    			Motor(342 * (hours - last_hour));
+    		}
+    		last_hour = hours;
+    	}
+    }
+
+    if (initial == 1) {
+    	initial = 0;
     }
 }
 uint8_t dec_to_bcd(uint8_t dec)
