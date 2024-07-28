@@ -24,6 +24,7 @@
 #include "lcd_keypad.h"
 #include "timer_config.h"
 #include "stopwatch.h"
+#include "clock.h"
 
 #include "stdio.h"
 #include "stdbool.h"
@@ -44,6 +45,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+RTC_HandleTypeDef hrtc;
+
 TIM_HandleTypeDef htim6;
 
 UART_HandleTypeDef huart2;
@@ -52,6 +55,8 @@ UART_HandleTypeDef huart2;
 DeviceState deviceState = {0};
 DeviceState previousState = {0};
 
+int inMode = 0;
+int reload = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -59,6 +64,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_RTC_Init(void);
 /* USER CODE BEGIN PFP */
 void CheckDeviceState();
 bool hasStateChanged(DeviceState currentState);
@@ -100,6 +106,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_TIM6_Init();
+  MX_RTC_Init();
   /* USER CODE BEGIN 2 */
   /* USER CODE END 2 */
 
@@ -110,24 +117,28 @@ int main(void)
   HAL_GPIO_WritePin(E_PORT, LCD_E_PIN, GPIO_PIN_RESET);
 
   init_magic();
-//  LCD_Clear();
-//  LCD_SetCursor(0, 0);
-//  LCD_SendString("Timer Mode:Tim1");
-//  LCD_SetCursor(1, 0);
-//  LCD_SendString("DISPLAY");
-  welcome();
+  
+  LCD_Clear();
+  LCD_SetCursor(0, 0);
+  LCD_SendString("Timer Mode:Tim1");
+  LCD_SetCursor(1, 0);
+  LCD_SendString("DISPLAY");
+  // welcome();
+
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//	  if (hasStateChanged(deviceState)) {
-//		  HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
-//		  LCD_Clear();
-//		  LCD_SetCursor(0, 0);
-//		  CheckDeviceState();
-//	  }
-
+	  if (hasStateChanged(deviceState) || reload) {
+		  if (reload) {
+			  reload = 0;
+		  }
+		  HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
+		  LCD_Clear();
+		  LCD_SetCursor(0, 0);
+		  CheckDeviceState();
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -145,9 +156,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
@@ -170,12 +182,95 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_RTC;
   PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
+  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief RTC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RTC_Init(void)
+{
+
+  /* USER CODE BEGIN RTC_Init 0 */
+
+  /* USER CODE END RTC_Init 0 */
+
+  RTC_TimeTypeDef sTime = {0};
+  RTC_DateTypeDef sDate = {0};
+  RTC_AlarmTypeDef sAlarm = {0};
+
+  /* USER CODE BEGIN RTC_Init 1 */
+
+  /* USER CODE END RTC_Init 1 */
+
+  /** Initialize RTC Only
+  */
+  hrtc.Instance = RTC;
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* USER CODE BEGIN Check_RTC_BKUP */
+
+  /* USER CODE END Check_RTC_BKUP */
+
+  /** Initialize RTC and set the Time and Date
+  */
+  sTime.Hours = 0x18;
+  sTime.Minutes = 0x16;
+  sTime.Seconds = 0x0;
+  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sDate.WeekDay = RTC_WEEKDAY_SATURDAY;
+  sDate.Month = RTC_MONTH_JULY;
+  sDate.Date = 0x27;
+  sDate.Year = 0x24;
+
+  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Enable the Alarm A
+  */
+  sAlarm.AlarmTime.Hours = 0x0;
+  sAlarm.AlarmTime.Minutes = 0x0;
+  sAlarm.AlarmTime.Seconds = 0x0;
+  sAlarm.AlarmTime.SubSeconds = 0x0;
+  sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
+  sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+  sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+  sAlarm.AlarmDateWeekDay = 0x1;
+  sAlarm.Alarm = RTC_ALARM_A;
+  if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RTC_Init 2 */
+
+  /* USER CODE END RTC_Init 2 */
+
 }
 
 /**
@@ -422,25 +517,43 @@ void CheckDeviceState(){
 		}
 	} else {
 		if (deviceState.clockMode == CLOCK) {
-			LCD_SendString("Clock Mode:Clock");
+			if (deviceState.modeState == DISPLAY) {
+				// 	NOTE THIS CLOCK IS HARDCODED, YOU CANT GET REAL TIME UNLESS YOU USE
+				// EXTERNAL SOURCE
+				inMode = 1;
+				DisplayClock();
+				inMode = 0;
+				LCD_Reset();
+				reload = 1;
+			} else {
+				inMode = 1;
+				ConfigClock();
+				inMode = 0;
+				LCD_Reset();
+				reload = 1;
+				deviceState.modeState = DISPLAY;
+			}
 		} else if (deviceState.clockMode == ALARM) {
 			LCD_SendString("Clock Mode:Alarm");
 		} else if (deviceState.clockMode == COUNTDOWN) {
 			LCD_SendString("Clock Mode:Count");
 		} else {
-			LCD_SendString("Clock Mode:Stop");
+			inMode = 1;
 			EnterStopwatch();
+			inMode = 0;
+			LCD_Reset();
+			reload = 1;
 		}
 	}
-	if (deviceState.modeState == DISPLAY) {
-		LCD_SetCursor(1, 0);
-		LCD_SendString("DISPLAY");
-	} else {
-		LCD_SetCursor(1, 0);
-		LCD_SendString("CONFIG");
-	}
+//// 	for testing
+//	if (deviceState.modeState == DISPLAY) {
+//		LCD_SetCursor(1, 0);
+//		LCD_SendString("DISPLAY");
+//	} else {
+//		LCD_SetCursor(1, 0);
+//		LCD_SendString("CONFIG");
+//	}
 }
-
 
 /* USER CODE END 4 */
 

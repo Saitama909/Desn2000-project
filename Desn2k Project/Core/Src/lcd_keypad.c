@@ -103,10 +103,10 @@ uint8_t scan_keypad() {
                 if (HAL_GPIO_ReadPin(R_PORT, rowpins[r]) == GPIO_PIN_SET) {
                     // Wait for the key to be released
                     while (HAL_GPIO_ReadPin(R_PORT, rowpins[r]) == GPIO_PIN_SET) {
-                        // You can add a small delay here if needed
                     }
                     // Update the return value with the key pressed
                     ret = key_map[r][c];
+                    HAL_GPIO_WritePin(C_PORT, colpins[c], GPIO_PIN_RESET);
                     break; // Exit the row loop as a key has been detected
                 }
             }

@@ -28,7 +28,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f3xx_hal.h"
-
+#include "stdbool.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -74,6 +74,7 @@ extern DeviceState prevState;
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 extern TIM_HandleTypeDef htim6;
+extern RTC_HandleTypeDef hrtc;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -87,6 +88,7 @@ void Error_Handler(void);
 /* USER CODE BEGIN EFP */
 extern void toggleStopwatch(void);
 extern void resetStopwatch(void);
+extern bool hasStateChanged(DeviceState currentState);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
