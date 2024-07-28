@@ -550,56 +550,56 @@ bool hasStateChanged(DeviceState currentState) {
 void Motor(int steps) {
     int step = 0;
     for (int i = 0; i < steps; i++) {
-        switch(step) {
-            case 0:
-                HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 1);
-                HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
-                HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
-                HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 1);
-                break;
-            case 1:
-                HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 1);
-                HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
-                HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
-                HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
-                break;
-            case 2:
-                HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 1);
-                HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
-                HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 1);
-                HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
-                break;
-            case 3:
-                HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
-                HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
-                HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 1);
-                HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
-                break;
-            case 4:
-                HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
-                HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 1);
-                HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 1);
-                HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
-                break;
-            case 5:
-                HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
-                HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 1);
-                HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
-                HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
-                break;
-            case 6:
-                HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
-                HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 1);
-                HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
-                HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 1);
-                break;
-            case 7:
-                HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
-                HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
-                HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
-                HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 1);
-                break;
-        }
+    	switch(step) {
+			case 0:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 1);
+				break;
+			case 1:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 1);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 1);
+				break;
+			case 2:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 1);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
+				break;
+			case 3:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 1);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 1);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
+				break;
+			case 4:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 1);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
+				break;
+			case 5:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 1);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 1);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
+				break;
+			case 6:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 1);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
+				break;
+			case 7:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 1);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 1);
+				break;
+		}
         step = (step + 1) % 8; // Increment and wrap around the step counter
         HAL_Delay(1); // Adjust delay as needed for your motor
     }

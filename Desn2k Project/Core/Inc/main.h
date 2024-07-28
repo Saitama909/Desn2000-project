@@ -89,6 +89,7 @@ void Error_Handler(void);
 extern void toggleStopwatch(void);
 extern void resetStopwatch(void);
 extern bool hasStateChanged(DeviceState currentState);
+extern void Motor(int steps);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
