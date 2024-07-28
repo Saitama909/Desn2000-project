@@ -100,6 +100,9 @@ uint8_t scan_keypad() {
             // Check if the key in the current row and column is pressed
             if (HAL_GPIO_ReadPin(R_PORT, rowpins[r]) == GPIO_PIN_SET) {
 				// Update the return value with the key pressed
+            	while(HAL_GPIO_ReadPin(R_PORT, rowpins[r]) == GPIO_PIN_SET) {
+
+            	}
 				ret = key_map[r][c];
 				break; // Exit the row loop as a key has been detected
             }
