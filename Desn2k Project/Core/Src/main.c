@@ -375,7 +375,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, LD2_Pin|COIL_B_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, COIL_D_Pin|SER_Pin|RCLK_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, COIL_D_Pin|LED_D1_Pin|SER_Pin|LED_D2_Pin
+                          |LED_D3_Pin|RCLK_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -409,8 +410,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(SW3_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : COIL_D_Pin SER_Pin RCLK_Pin */
-  GPIO_InitStruct.Pin = COIL_D_Pin|SER_Pin|RCLK_Pin;
+  /*Configure GPIO pins : COIL_D_Pin LED_D1_Pin SER_Pin LED_D2_Pin
+                           LED_D3_Pin RCLK_Pin */
+  GPIO_InitStruct.Pin = COIL_D_Pin|LED_D1_Pin|SER_Pin|LED_D2_Pin
+                          |LED_D3_Pin|RCLK_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -610,6 +613,7 @@ void CheckDeviceState(){
 	if (deviceState.mainMode == TIMER_MODE) {
 		// indicate timer mode
 		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
+		HAL_GPIO_WritePin(GPIOB, LED_D1_Pin, SET);
 		if (deviceState.timerMode == TIMER1) {
 			LCD_SendString("Timer Mode:Tim1");
 		} else if (deviceState.timerMode == TIMER2) {
@@ -620,6 +624,7 @@ void CheckDeviceState(){
 			LCD_SendString("Timer Mode:Tim4");
 		}
 	} else {
+		HAL_GPIO_WritePin(GPIOB, LED_D1_Pin, RESET);
 		if (deviceState.clockMode == CLOCK) {
 			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
 			int motor = 0;

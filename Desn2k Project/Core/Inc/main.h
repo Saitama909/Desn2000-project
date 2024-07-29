@@ -117,6 +117,8 @@ extern void Motor(int steps);
 #define SW3_EXTI_IRQn EXTI0_IRQn
 #define COIL_D_Pin GPIO_PIN_2
 #define COIL_D_GPIO_Port GPIOB
+#define LED_D1_Pin GPIO_PIN_10
+#define LED_D1_GPIO_Port GPIOB
 #define SER_Pin GPIO_PIN_15
 #define SER_GPIO_Port GPIOB
 #define COIL_C_Pin GPIO_PIN_7
@@ -129,6 +131,10 @@ extern void Motor(int steps);
 #define TCK_GPIO_Port GPIOA
 #define SWO_Pin GPIO_PIN_3
 #define SWO_GPIO_Port GPIOB
+#define LED_D2_Pin GPIO_PIN_4
+#define LED_D2_GPIO_Port GPIOB
+#define LED_D3_Pin GPIO_PIN_5
+#define LED_D3_GPIO_Port GPIOB
 #define RCLK_Pin GPIO_PIN_7
 #define RCLK_GPIO_Port GPIOB
 
