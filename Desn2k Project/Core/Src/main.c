@@ -715,6 +715,9 @@ static void MX_GPIO_Init(void)
   HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
   GPIO_InitStruct.Pin = LCD_D4_PIN;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -806,6 +809,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
             last_interrupt_time_sw3 = current_time;
             deviceState.modeState = !deviceState.modeState;
         }
+    } else if (GPIO_Pin == B1_Pin) {
+    	timer_playing = 0;
     }
 }
 
@@ -817,45 +822,24 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim == &htim7) {
 		if (user.timers[TIMER1].running && user.timers[TIMER1].remaining_time > 0) {
 			user.timers[TIMER1].remaining_time--;
-//			display_timer();
-//			if (user.timers[TIMER1].remaining_time == 0) {
-//				HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_4);
-//				user.timers[TIMER1].running = 0;
-//				play_timer_alert(TIMER1);
-//			}
 		}
 	}
 
 	if (htim == &htim8) {
 		if (user.timers[TIMER2].running && user.timers[TIMER2].remaining_time > 0) {
 			user.timers[TIMER2].remaining_time--;
-			display_timer();
-			if (user.timers[TIMER2].remaining_time == 0) {
-				user.timers[TIMER2].running = 0;
-				play_timer_alert(TIMER2);
-			}
 		}
 	}
 
 	if (htim == &htim2) {
 		if (user.timers[TIMER3].running && user.timers[TIMER3].remaining_time > 0) {
 			user.timers[TIMER3].remaining_time--;
-			display_timer();
-			if (user.timers[TIMER3].remaining_time == 0) {
-				user.timers[TIMER3].running = 0;
-				play_timer_alert(TIMER3);
-			}
 		}
 	}
 
 	if (htim == &htim17) {
 		if (user.timers[TIMER4].running && user.timers[TIMER4].remaining_time > 0) {
 			user.timers[TIMER4].remaining_time--;
-			display_timer();
-			if (user.timers[TIMER4].remaining_time == 0) {
-				user.timers[TIMER4].running = 0;
-				play_timer_alert(TIMER4);
-			}
 		}
 	}
 
@@ -945,19 +929,8 @@ void CheckDeviceState(){
 	if (deviceState.mainMode == TIMER_MODE) {
 		// indicate timer mode
 		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
-		HAL_GPIO_WritePin(GPIOB, LED_D1_Pin, SET);
 		LCD_Clear();
-		LCD_SetCursor(0, 0);
 		EnterTimer();
-//		if (deviceState.timerMode == TIMER1) {
-//			LCD_SendString(user.timers[TIMER1].name);
-//		} else if (deviceState.timerMode == TIMER2) {
-//			LCD_SendString(user.timers[TIMER2].name);
-//		} else if (deviceState.timerMode == TIMER3) {
-//			LCD_SendString(user.timers[TIMER3].name);
-//		} else {
-//			LCD_SendString(user.timers[TIMER4].name);
-//		}
 		display_timer();
 	} else {
 		HAL_GPIO_WritePin(GPIOB, LED_D1_Pin, RESET);
@@ -968,7 +941,7 @@ void CheckDeviceState(){
 				Motor(4096);
 			}
 			if (deviceState.modeState == DISPLAY) {
-				// 	NOTE THIS CLOCK IS HARDCODED, YOU CANT GET REAL TIME UNLESS YOU USE
+				// NOTE THIS CLOCK IS HARDCODED, YOU CANT GET REAL TIME UNLESS YOU USE
 				// EXTERNAL SOURCE
 				inMode = 1;
 				DisplayClock();
@@ -994,7 +967,7 @@ void CheckDeviceState(){
 			LCD_Reset();
 			reload = 1;
 		}
-}
+	}
   
 // 	for testing
 //	if (deviceState.modeState == DISPLAY) {

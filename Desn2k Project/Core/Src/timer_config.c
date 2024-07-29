@@ -290,16 +290,19 @@ void choose_timer_alert(int timer_index) {
     LCD_SetCursor(1, 0);
     LCD_SendString("Pick song 1-6: ");
 
+    int selected_song = -1;
+
     while (1) {
 		char key = scan_keypad();
 		if (key) {
 			int num = key - '0';
 			if (num >= 1 && num <= 6) {
+				selected_song = num - 1;
 				LCD_SetCursor(1, 15);
 				LCD_Data(key);
 				play_alert(&songs[num - 1]);
 			} else if (key == '#') {
-				user.timers[timer_index].alert = songs[num - 1];
+				user.timers[timer_index].alert = songs[selected_song];
 				break;
 			}
 		}

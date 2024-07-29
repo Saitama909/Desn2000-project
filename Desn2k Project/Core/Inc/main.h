@@ -102,6 +102,7 @@ extern void Motor(int steps);
 /* Private defines -----------------------------------------------------------*/
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
+#define B1_EXTI_IRQn EXTI15_10_IRQn
 #define SRCLK_Pin GPIO_PIN_0
 #define SRCLK_GPIO_Port GPIOC
 #define SW1_Pin GPIO_PIN_1

@@ -8,6 +8,8 @@
 #ifndef INC_TIMER_H_
 #define INC_TIMER_H_
 
+extern volatile int timer_playing;
+
 void init_timers();
 void display_timer();
 void EnterTimer();

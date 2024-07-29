@@ -10,6 +10,8 @@
 #include "timer_config.h"
 #include "timer.h"
 
+volatile int timer_playing = 0;
+
 void init_timers() {
     for (int i = 0; i < user.num_timers; i++) {
         user.timers[i].remaining_time = user.timers[i].duration;
@@ -46,7 +48,6 @@ void start_stop_timer() {
 
 	if (!user.timers[timer_index].running) {
 		// Start the timer
-		user.timers[timer_index].running = 1;
 		start_timer(timer_index);
 
 		while (user.timers[timer_index].running) {
@@ -55,17 +56,19 @@ void start_stop_timer() {
 			if (user.timers[timer_index].remaining_time == 0) {
 				display_timer(user.timers[timer_index].remaining_time);
 				stop_timer(timer_index);
+				timer_playing = 1;
 				play_timer_alert(timer_index);
 			}
 		}
 	} else {
 		// Stop the timer
-		user.timers[timer_index].running = 0;
 		stop_timer(timer_index);
 	}
 }
 
 void start_timer(int timer_index) {
+	user.timers[timer_index].running = 1;
+
 	switch (timer_index) {
 		case TIMER1:
 			HAL_TIM_Base_Start_IT(&htim7);
@@ -83,6 +86,8 @@ void start_timer(int timer_index) {
 }
 
 void stop_timer(int timer_index) {
+	user.timers[timer_index].running = 0;
+
 	switch (timer_index) {
 		case TIMER1:
 			HAL_TIM_Base_Stop_IT(&htim7);
@@ -100,15 +105,10 @@ void stop_timer(int timer_index) {
 }
 
 void play_timer_alert(int timer_index) {
-	while (1) {
+	while (timer_playing) {
 		play_alert(&user.timers[timer_index].alert);
-
-		char key = scan_keypad();
-		if (key == '*') {
-			TIM1->CCR3 = 0;
-			user.timers[timer_index].running = 0;
-			user.timers[timer_index].remaining_time = user.timers[timer_index].duration;
-			break;
-		}
 	}
+	TIM1->CCR3 = 0;
+	user.timers[timer_index].remaining_time = user.timers[timer_index].duration;
+	display_time(timer_index);
 }
