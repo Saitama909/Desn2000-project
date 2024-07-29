@@ -1,6 +1,8 @@
 # Developer's Guide
 ## Introduction
 This Developer's Guide serves as a introduction and guide for anyone interested in the technical aspects of this project or future developers who may need to extend, optimise, or fix bugs in the codebase. The focus of this project is a configurable lab timer which could run multiple timers simultaneously and provide standard clock functionality.
+
+## States
 ### State Definition
 
 The `DeviceState` struct is used to store the state of the timer. It consists of four fields:
@@ -57,7 +59,12 @@ typedef struct {
     ModeState modeState;
 } DeviceState;
 ```
-
+### State Navigation
+The main method of the user changing states is implemented through the buttons and their respecive pins `SW1_Pin`, `SW2_Pin` and `SW3_Pin`, with the following functionalities
+- `SW1_Pin` cycles between the main modes
+- `SW2_Pin` cycles between the sub modes of that main mode
+- `SW3_Pin` cycles between the either `DISPLAY` or `CONFIG` modes
+- 
 ### Standard Clock Modes
 
 #### Overview
@@ -112,8 +119,8 @@ The clock mode has two states: `DISPLAY` and `CONFIG`. It displays the time in t
 - **RTC Timer**: Both `DISPLAY` and `CONFIG` states use the `RTC` Timer to retrieve the current time. It is initialized in `main.c` through the `hrtc` in the `static void MX_RTC_Init(void)` function.
 - **Initial Display Time**: When the timer is first switched on, the default display time is set to the value of `hrtc`.
 
-### Hardware Components
-#### Microcontroller
+## Hardware Components
+### Microcontroller
 **Pin Wirings**
 All pin wirings follow this document:
 https://github.com/Saitama909/Desn2000-project/blob/main/Board%20Pin%20Wiring%20Documentation.pdf
@@ -149,15 +156,19 @@ Naming of the corresponding pins for each I/O Device are shown below:
 | LED LD2                     | LD2_Pin     |
 
 
-#### Keypad
+### Keypad
 A 4x4 Keypad with the 4 row pins configured as inputs and the 4 column pins configured as outputs connected to the **Microcontroller Board** , with related functions located in the `lcd_keypad.c` file.
 
 **Keypad Input**
 Implemeneted through setting each of the column pins to a high state and checking which row pin is now in a high state
 
-#### LCD
+### LCD
+
 2 row 16 column, blue background LCD connected to the **Microcontroller Board**, with related functions located in the `lcd_keypad.c` file.  **HD44780** LCD where more information can be found on its datasheet.
 
 **LCD Display**
+
 Requires initialisation before use through the `void init_magic()` function in `lcd_keypad.c` file prior to displaying anything on the screen.
+
+
 
