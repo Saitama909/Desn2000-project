@@ -73,7 +73,11 @@ extern volatile DeviceState prevState;
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim6;
+extern TIM_HandleTypeDef htim7;
+extern TIM_HandleTypeDef htim8;
 extern TIM_HandleTypeDef htim16;
 extern RTC_HandleTypeDef hrtc;
 /* USER CODE END EC */
@@ -98,7 +102,6 @@ extern void Motor(int steps);
 /* Private defines -----------------------------------------------------------*/
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
-#define B1_EXTI_IRQn EXTI15_10_IRQn
 #define SRCLK_Pin GPIO_PIN_0
 #define SRCLK_GPIO_Port GPIOC
 #define SW1_Pin GPIO_PIN_1
