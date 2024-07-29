@@ -64,9 +64,8 @@ The main method of the user changing states is implemented through the buttons a
 - `SW1_Pin` cycles between the main modes
 - `SW2_Pin` cycles between the sub modes of that main mode
 - `SW3_Pin` cycles between the either `DISPLAY` or `CONFIG` modes
-- 
-### Standard Clock Modes
-
+## Standard Clock Modes
+### Clock
 #### Overview
 
 The clock mode has two states: `DISPLAY` and `CONFIG`. It displays the time in the format `day/month/year weekday` on the top row of the LCD and `hour:minute:second am/pm` on the bottom row.
@@ -85,7 +84,7 @@ The clock mode has two states: `DISPLAY` and `CONFIG`. It displays the time in t
 - **CONFIG State**:
   - Components: **LCD**, **Keypad**, **Microcontroller**.
 
-### Clock Functionality
+#### Clock Functionality
 #### Displaying the Clock
 1.  **Initial Configuration**:
    - Begins with `void DisplayClock()`, and resets the LCD and sets the `initial` flag to 1 to display time initially
@@ -114,10 +113,58 @@ The clock mode has two states: `DISPLAY` and `CONFIG`. It displays the time in t
 5. **Returning to Display State**:
    - Exits `ConfigClock()`, returns to `CheckDeviceState()` in `main.c`, and updates `deviceState.modeState` to `DISPLAY`.
 
-#### Key Features
+#### Key Features/Functions
 
 - **RTC Timer**: Both `DISPLAY` and `CONFIG` states use the `RTC` Timer to retrieve the current time. It is initialized in `main.c` through the `hrtc` in the `static void MX_RTC_Init(void)` function.
 - **Initial Display Time**: When the timer is first switched on, the default display time is set to the value of `hrtc`.
+
+### Stopwatch
+
+#### Overview
+
+The stopwatch mode has only one state: `DISPLAY`. It displays the elapsed time in the format `hours:minutes:seconds` on the LCD. The stopwatch can be started, stopped, and reset using keypad inputs.
+
+#### Software Structure
+
+- **Main Functionality File**: `stopwatch.c`
+- **State Function**:
+  - `DISPLAY`: Handled by `void EnterStopwatch()`.
+
+#### Subsystems
+
+- **DISPLAY State**:
+  - Components: **LCD**, **Keypad**, **Microcontroller**.
+
+#### Stopwatch Functionality
+#### Displaying the Stopwatch
+
+1. **Initial Configuration**:
+   - Begins with `void EnterStopwatch()`, resetting the LCD and initializing the stopwatch variables.
+2. **Displaying Time**:
+   - Continuously updates the LCD to display the elapsed time in the format `hours:minutes:seconds`.
+   - Uses a timer interrupt to keep track of milliseconds.
+3. **Keypad Controls**:
+   - `#`: Toggles the stopwatch between running and stopped states.
+   - `*`: Resets the stopwatch to zero.
+4. **Exiting Display State**:
+   - Checks for a change in the device state to exit `void EnterStopwatch()` and return to the main state handling function.
+
+#### Key Key Features/Functions
+
+#### `void EnterStopwatch()`
+Initializes the LCD and enters a loop to handle keypad input and update the LCD display.
+
+#### `void LCD_Reset()`
+Clears the LCD and sets the cursor to the home position.
+
+#### `void updateLCD(uint32_t count)`
+Formats the elapsed time and updates the LCD display if the seconds have changed.
+
+#### `void toggleStopwatch()`
+Starts or stops the timer interrupt to control the stopwatch running state.
+
+#### `void resetStopwatch()`
+Stops the timer interrupt and resets the elapsed time to zero.
 
 ## Hardware Components
 ### Microcontroller
@@ -155,7 +202,7 @@ Naming of the corresponding pins for each I/O Device are shown below:
 | COIL D                      | COIL_D_Pin  |
 | LED LD2                     | LD2_Pin     |
 
-
+Note: LDR R32 is set to `ADC2_IN5` an anlogue to digital pin, LED D3 and LED D2 are set to `TIM3` channels 1 and 2 respectively. 
 ### Keypad
 A 4x4 Keypad with the 4 row pins configured as inputs and the 4 column pins configured as outputs connected to the **Microcontroller Board** , with related functions located in the `lcd_keypad.c` file.
 
