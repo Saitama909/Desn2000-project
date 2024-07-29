@@ -129,7 +129,7 @@ int main(void)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   TIM1->CCR3 = 0;
 
-  welcome();
+//  welcome();
 
   shiftByte(0);
   latchData();
