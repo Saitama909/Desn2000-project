@@ -74,6 +74,7 @@ extern volatile DeviceState prevState;
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 extern TIM_HandleTypeDef htim6;
+extern TIM_HandleTypeDef htim16;
 extern RTC_HandleTypeDef hrtc;
 /* USER CODE END EC */
 
@@ -81,6 +82,8 @@ extern RTC_HandleTypeDef hrtc;
 /* USER CODE BEGIN EM */
 
 /* USER CODE END EM */
+
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
@@ -145,5 +148,3 @@ extern void Motor(int steps);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __MAIN_H */

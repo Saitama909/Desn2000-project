@@ -31,6 +31,10 @@ char current_key = '\0';
 int current_char_index = 0;
 uint32_t last_key_time = 0;
 
+Song songs[6];
+
+volatile int note_playing;
+
 void welcome() {
 	LCD_SendString("Hello!");
 	LCD_SetCursor(1, 0);
@@ -94,11 +98,12 @@ void choose_timer_count() {
 
 // ONLY CALLED WHEN STATE == CONFIGURE_TIMER_DURATION
 void config_specific_timer() {
-	LCD_Clear();
-	LCD_SetCursor(0, 0);
-
 	// Cycle through specified number of timers
 	for (int i = 0; i < user.num_timers; i++) {
+		LCD_Clear();
+		LCD_SetCursor(0, 0);
+
+		user.state = CONFIGURE_TIMER_DURATION;
 		char buffer[22] = "";
 		snprintf(buffer, sizeof(buffer), "Timer %d duration", i + 1);
 		LCD_SendString(buffer);
@@ -110,7 +115,17 @@ void config_specific_timer() {
 		snprintf(buffer, sizeof(buffer), "Timer %d name", i + 1);
 		LCD_SendString(buffer);
 		enter_timer_name(i);
+
+		user.state = CONFIGURE_TIMER_ALERT;
+		LCD_Clear();
+		LCD_SetCursor(0, 0);
+		snprintf(buffer, sizeof(buffer), "Timer %d alert", i + 1);
+		LCD_SendString(buffer);
+		choose_timer_alert(i);
 	}
+
+	LCD_Clear();
+	LCD_SetCursor(0, 0);
 }
 
 void enter_timer_duration(int timer_index) {
@@ -246,4 +261,129 @@ void t9_typing(int key, char *input_text) {
 
 	LCD_SetCursor(1, 0);
 	LCD_SendString(input_text);
+}
+
+void choose_timer_alert(int timer_index) {
+    init_alerts();
+
+    LCD_SetCursor(1, 0);
+    LCD_SendString("Pick song 1-6: ");
+
+    while (1) {
+		char key = scan_keypad();
+		if (key) {
+			int num = key - '0';
+			if (num >= 1 && num <= 6) {
+				LCD_SetCursor(1, 15);
+				LCD_Data(key);
+				play_alert(&songs[num - 1]);
+			} else if (key == '#') {
+				user.timers[timer_index].alert = songs[num - 1];
+				break;
+			}
+		}
+	}
+}
+
+void init_alerts() {
+    Song c_maj_arp = {
+        .notes = {
+            {261, 500},
+            {330, 500},
+            {392, 500},
+            {523, 750}
+        },
+        .num_notes = 4
+    };
+    songs[0] = c_maj_arp;
+
+    Song windows_shutdown = {
+        .notes = {
+            {830, 500},
+            {622, 500},
+            {415, 500},
+            {466, 500}
+        },
+        .num_notes = 4
+    };
+    songs[1] = windows_shutdown;
+
+    Song annoying = {
+        .notes = {
+            {392, 200},
+            {330, 200},
+            {392, 200},
+            {330, 200},
+            {392, 200},
+            {330, 200},
+        },
+        .num_notes = 6
+    };
+    songs[2] = annoying;
+
+    Song amongus = {
+        .notes = {
+            {261, 200},
+            {311, 200},
+            {349, 200},
+            {369, 200},
+            {349, 200},
+            {311, 200},
+            {261, 600},
+            {233, 100},
+            {293, 100},
+            {261, 600},
+        },
+        .num_notes = 10
+    };
+    songs[3] = amongus;
+
+    Song doorbell = {
+		.notes = {
+			{329, 300},
+			{261, 300},
+			{293, 300},
+			{196, 300},
+			{196, 300},
+			{293, 300},
+			{329, 300},
+			{261, 300},
+		},
+		.num_notes = 8
+    };
+    songs[4] = doorbell;
+
+    Song c_maj_scale = {
+		.notes = {
+			{261, 200},
+			{293, 200},
+			{329, 200},
+			{349, 200},
+			{392, 200},
+			{440, 200},
+			{493, 200},
+			{523, 200},
+		},
+		.num_notes = 8
+	};
+	songs[5] = c_maj_scale;
+}
+
+void play_alert(Song *song) {
+    for (int i = 0; i < song->num_notes; i++) {
+        Note note = song->notes[i];
+        TIM1->ARR = (72000000 / (note.freq * 1000)) - 1;
+        TIM1->CCR3 = TIM1->ARR / 2;
+
+        // NOTE: WE DO NOT WANT TO USE DELAYS - USE ANOTHER TIMER INSTEAD FOR THE DURATION OF THE NOTE
+        __HAL_TIM_SET_AUTORELOAD(&htim16, note.duration * 10 - 1);
+        __HAL_TIM_CLEAR_FLAG(&htim16, TIM_FLAG_UPDATE);
+
+        HAL_TIM_Base_Start_IT(&htim16);
+        note_playing = 1;
+        while (note_playing) {
+
+        }
+    }
+    TIM1->CCR3 = 0;
 }

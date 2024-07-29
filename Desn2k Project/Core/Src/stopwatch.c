@@ -53,7 +53,6 @@ void updateLCD(uint32_t count) {
     		return;
 	}
     prevseconds = seconds;
-
     snprintf(buffer, sizeof(buffer), "%02lu:%02lu:%02lu", hours, minutes, seconds);
     LCD_SetCursor(0, 0);
     LCD_SendString(buffer);
