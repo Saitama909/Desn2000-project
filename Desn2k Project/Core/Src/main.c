@@ -613,6 +613,7 @@ void CheckDeviceState(){
 	if (deviceState.mainMode == TIMER_MODE) {
 		// indicate timer mode
 		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
+		HAL_GPIO_WritePin(GPIOB, LED_D1_Pin, SET);
 		if (deviceState.timerMode == TIMER1) {
 			LCD_SendString("Timer Mode:Tim1");
 		} else if (deviceState.timerMode == TIMER2) {
@@ -623,6 +624,7 @@ void CheckDeviceState(){
 			LCD_SendString("Timer Mode:Tim4");
 		}
 	} else {
+		HAL_GPIO_WritePin(GPIOB, LED_D1_Pin, RESET);
 		if (deviceState.clockMode == CLOCK) {
 			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
 			int motor = 0;
