@@ -77,18 +77,18 @@ void LightShiftLED() {
 }
 
 uint16_t getBitPattern(uint8_t position) {
-// Ensure the position wraps around if it exceeds 12
-	if (position > 12) {
-		position = (position - 12);
-	}
-
-	// If position is 0, return 0b0000000000000000
-	if (position == 0) {
-		return 0;
-	}
-	// Calculate the bit pattern with `position` number of 1s starting from the left
-	 return ((1 << position) - 1) << (16 - position);
+    if (position == 0) {
+        return 0b0000000000000000;
+    } else if (position <= 12) {
+        return ((1 << position) - 1) << 4;  // Ensure the first 4 bits are 0
+    } else {
+        return ((1 << (24 - position)) - 1) << 4;  // Ensure the first 4 bits are 0
+    }
 }
+
+
+
+
 
 void shiftBit(uint8_t bit) {
   if (bit) {
