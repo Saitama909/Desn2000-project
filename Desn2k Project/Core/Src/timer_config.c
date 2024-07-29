@@ -194,9 +194,7 @@ void check_timer_duration(int input_secs, int timer_index) {
 		enter_timer_duration(timer_index);
 
 	} else {
-		user.timers[timer_index].hours = total_secs / 3600;
-		user.timers[timer_index].mins = (total_secs % 3600) / 60;
-		user.timers[timer_index].secs = total_secs % 60;
+		user.timers[timer_index].duration = total_secs;
 	}
 }
 

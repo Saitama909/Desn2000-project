@@ -31,9 +31,9 @@ typedef struct {
 } Song;
 
 typedef struct {
-	int hours;
-	int mins;
-	int secs;
+	int duration;
+	int remaining_time;
+	int running;
 	char name[17];
 	Song alert;
 } Timer;
@@ -44,6 +44,7 @@ typedef struct {
 	Timer timers[4];
 } User;
 
+extern User user;
 extern volatile int note_playing;
 
 void welcome();
