@@ -81,9 +81,9 @@ The clock mode has two states: `DISPLAY` and `CONFIG`. It displays the time in t
 #### Subsystems
 
 - **DISPLAY State**:
-  - Components: **LCD**, **Shift Register LEDs**, **Microcontroller Board**.
+  - Components: **LCD**, **Shift Register LEDs**, **Microcontroller**.
 - **CONFIG State**:
-  - Components: **LCD**, **Keypad**, **Microcontroller Board**.
+  - Components: **LCD**, **Keypad**, **Microcontroller**.
 
 ### Clock Functionality
 #### Displaying the Clock
@@ -160,15 +160,34 @@ Naming of the corresponding pins for each I/O Device are shown below:
 A 4x4 Keypad with the 4 row pins configured as inputs and the 4 column pins configured as outputs connected to the **Microcontroller Board** , with related functions located in the `lcd_keypad.c` file.
 
 **Keypad Input**
-Implemeneted through setting each of the column pins to a high state and checking which row pin is now in a high state
+Implemented through setting each of the column pins to a high state and checking which row pin is now in a high state
 
 ### LCD
 
-2 row 16 column, blue background LCD connected to the **Microcontroller Board**, with related functions located in the `lcd_keypad.c` file.  **HD44780** LCD where more information can be found on its datasheet.
+2 row 16 column, blue background LCD connected to the **Microcontroller**, with related functions located in the `lcd_keypad.c` file.  **HD44780** LCD where more information can be found on its datasheet.
 
 **LCD Display**
 
 Requires initialisation before use through the `void init_magic()` function in `lcd_keypad.c` file prior to displaying anything on the screen.
+
+### Motor
+
+Uses half-step movement to rotate, connected to the coil pins A-D, mainly implemented through the `void Motor` function in `main.c`
+
+### Microcontroller
+
+STM32F303RE ARM Microcontroller, controls the other hardware components through its connection, more information on its datasheet and board schematic (https://github.com/Saitama909/Desn2000-project/blob/main/STM32f303re%20DataSheet.pdf and https://github.com/Saitama909/Desn2000-project/blob/main/coaST-schematic.pdf)
+
+### LEDs
+
+4 normal LED's next to each of the buttons SW1-SW4 and shift register LED's that utilise the Shift Register RCLK(latch),  Shift Register SRCLK (serial clock) and Shift Register SER (data in) for data input and lighting up. 
+
+### Light Dependent Resistors
+
+Of the two only `LDR R32` is used in this project and soley in `void LightBrightness()` in `main.c` to determine the brightness of the LED's based on the environmental lighting
+
+
+
 
 
 
