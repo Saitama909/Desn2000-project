@@ -33,6 +33,8 @@ uint32_t last_key_time = 0;
 
 Song songs[6];
 
+volatile int note_playing;
+
 void welcome() {
 	LCD_SendString("Hello!");
 	LCD_SetCursor(1, 0);
@@ -263,6 +265,7 @@ void t9_typing(int key, char *input_text) {
 
 void choose_timer_alert(int timer_index) {
     init_alerts();
+
     LCD_SetCursor(1, 0);
     LCD_SendString("Pick song 1-6: ");
 
@@ -373,7 +376,14 @@ void play_alert(Song *song) {
         TIM1->CCR3 = TIM1->ARR / 2;
 
         // NOTE: WE DO NOT WANT TO USE DELAYS - USE ANOTHER TIMER INSTEAD FOR THE DURATION OF THE NOTE
-        HAL_Delay(note.duration);
+        __HAL_TIM_SET_AUTORELOAD(&htim16, note.duration * 10 - 1);
+        __HAL_TIM_CLEAR_FLAG(&htim16, TIM_FLAG_UPDATE);
+
+        HAL_TIM_Base_Start_IT(&htim16);
+        note_playing = 1;
+        while (note_playing) {
+
+        }
     }
     TIM1->CCR3 = 0;
 }

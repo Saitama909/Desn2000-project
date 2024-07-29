@@ -74,7 +74,7 @@ extern DeviceState prevState;
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 extern TIM_HandleTypeDef htim6;
-extern TIM_HandleTypeDef htim7;
+extern TIM_HandleTypeDef htim16;
 extern RTC_HandleTypeDef hrtc;
 /* USER CODE END EC */
 

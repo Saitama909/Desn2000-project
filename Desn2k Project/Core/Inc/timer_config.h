@@ -44,6 +44,7 @@ typedef struct {
 	Timer timers[4];
 } User;
 
+extern volatile int note_playing;
 
 void welcome();
 void choose_timer_count();
