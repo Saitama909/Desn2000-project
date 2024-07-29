@@ -133,7 +133,8 @@ void EditTime() {
 	int flashCounter = 0;
 	pos = 0;
 	GetCurrentTime();
-	DisplayEditedTime();
+	initial = 1;
+	DisplayDateTime();
 	while (1) {
 		char key = scan_keypad();
 		if (key != '\0') {
@@ -279,24 +280,71 @@ void DisplayEditedTime() {
 			am_pm[0] = 'P';
 		}
 		if (buffer[3] == 0) pm_time = 12;
+		// Convert components to strings
+		    char day_str[4], month_str[4], year_str[5];
+		    char hour_str[4], minute_str[4], second_str[3];
+		    char weekday_str[4], am_pm_str[3];
 
-		char date_str[17];
-		char time_str[17];
+		    // Ignore Warnings
+		    snprintf(day_str, sizeof(day_str), "%02lu/", buffer[0]);
+		    snprintf(month_str, sizeof(month_str), "%02lu/", buffer[1]);
+		    snprintf(year_str, sizeof(year_str), "%04lu", buffer[2]);
+		    snprintf(hour_str, sizeof(hour_str), "%02d:", pm_time);
+		    snprintf(minute_str, sizeof(minute_str), "%02lu:", buffer[4]);
+		    snprintf(second_str, sizeof(second_str), "%02lu", buffer[5]);
+		    snprintf(weekday_str, sizeof(weekday_str), "%s", week_days[buffer[6] - 1]);
+		    snprintf(am_pm_str, sizeof(am_pm_str), "%s", am_pm);
 
-		snprintf(date_str, sizeof(date_str),
-				 "%02lu/%02lu/%04lu %s",
-				 buffer[0], buffer[1], buffer[2], week_days[buffer[6] - 1]);
+		    // Update each component if it has changed
+		    if (strcmp(day_str, last_day) != 0 || initial == 1) {
+		        LCD_SetCursor(0, 0); // Set cursor to day position
+		        LCD_SendString(day_str);
+		        strcpy(last_day, day_str);
+		    }
 
-		snprintf(time_str, sizeof(time_str),
-				 "%02lu:%02lu:%02lu %s",
-				 pm_time, buffer[4], buffer[5], am_pm);
+		    if (strcmp(month_str, last_month) != 0 || initial == 1) {
+		        LCD_SetCursor(0, 3); // Set cursor to month position
+		        LCD_SendString(month_str);
+		        strcpy(last_month, month_str);
+		    }
 
-		// Clear LCD and display date and time
-		LCD_Clear();
-		LCD_SetCursor(0, 0);
-		LCD_SendString(date_str);
-		LCD_SetCursor(1, 0);  // Move to second line
-		LCD_SendString(time_str);
+		    if (strcmp(year_str, last_year) != 0 || initial == 1) {
+		        LCD_SetCursor(0, 6); // Set cursor to year position
+		        LCD_SendString(year_str);
+		        strcpy(last_year, year_str);
+		    }
+
+		    if (strcmp(weekday_str, last_weekday) != 0 || initial == 1) {
+		        LCD_SetCursor(0, 11); // Set cursor to weekday position
+		        LCD_SendString(weekday_str);
+		        strcpy(last_weekday, weekday_str);
+		    }
+
+		    if (strcmp(hour_str, last_hours) != 0 || initial == 1) {
+		        LCD_SetCursor(1, 0); // Set cursor to hours position
+		        LCD_SendString(hour_str);
+		        strcpy(last_hours, hour_str);
+		    }
+
+		    if (strcmp(minute_str, last_minutes) != 0 || initial == 1) {
+		        LCD_SetCursor(1, 3); // Set cursor to minutes position
+		        LCD_SendString(minute_str);
+		        strcpy(last_minutes, minute_str);
+		    }
+
+		    if (strcmp(second_str, last_seconds) != 0 || initial == 1) {
+		        LCD_SetCursor(1, 6); // Set cursor to seconds position
+		        LCD_SendString(second_str);
+		        strcpy(last_seconds, second_str);
+		    }
+
+		    if (strcmp(am_pm_str, last_am_pm) != 0 || initial == 1) {
+		        LCD_SetCursor(1, 9); // Set cursor to AM/PM position
+		        LCD_SendString(am_pm_str);
+		        strcpy(last_am_pm, am_pm_str);
+		    }
+
+		    initial = 0;
 }
 
 void IncreaseSelection() {
