@@ -51,11 +51,11 @@ RTC_HandleTypeDef hrtc;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
-TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim7;
 TIM_HandleTypeDef htim8;
 TIM_HandleTypeDef htim16;
+TIM_HandleTypeDef htim17;
 
 UART_HandleTypeDef huart2;
 
@@ -77,8 +77,8 @@ static void MX_TIM6_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_TIM3_Init(void);
 static void MX_TIM8_Init(void);
+static void MX_TIM17_Init(void);
 /* USER CODE BEGIN PFP */
 void CheckDeviceState();
 void Motor(int steps);
@@ -126,8 +126,8 @@ int main(void)
   MX_TIM16_Init();
   MX_TIM7_Init();
   MX_TIM2_Init();
-  MX_TIM3_Init();
   MX_TIM8_Init();
+  MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
   /* USER CODE END 2 */
 
@@ -211,15 +211,15 @@ void SystemClock_Config(void)
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_RTC
                               |RCC_PERIPHCLK_TIM1|RCC_PERIPHCLK_TIM16
-                              |RCC_PERIPHCLK_TIM8|RCC_PERIPHCLK_TIM2
-                              |RCC_PERIPHCLK_TIM34;
+                              |RCC_PERIPHCLK_TIM17|RCC_PERIPHCLK_TIM8
+                              |RCC_PERIPHCLK_TIM2;
   PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
   PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
   PeriphClkInit.Tim1ClockSelection = RCC_TIM1CLK_HCLK;
   PeriphClkInit.Tim16ClockSelection = RCC_TIM16CLK_HCLK;
+  PeriphClkInit.Tim17ClockSelection = RCC_TIM17CLK_HCLK;
   PeriphClkInit.Tim8ClockSelection = RCC_TIM8CLK_HCLK;
   PeriphClkInit.Tim2ClockSelection = RCC_TIM2CLK_HCLK;
-  PeriphClkInit.Tim34ClockSelection = RCC_TIM34CLK_HCLK;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -415,51 +415,6 @@ static void MX_TIM2_Init(void)
 }
 
 /**
-  * @brief TIM3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM3_Init(void)
-{
-
-  /* USER CODE BEGIN TIM3_Init 0 */
-
-  /* USER CODE END TIM3_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  /* USER CODE BEGIN TIM3_Init 1 */
-
-  /* USER CODE END TIM3_Init 1 */
-  htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 7199;
-  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 9999;
-  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM3_Init 2 */
-
-  /* USER CODE END TIM3_Init 2 */
-
-}
-
-/**
   * @brief TIM6 Initialization Function
   * @param None
   * @retval None
@@ -611,6 +566,38 @@ static void MX_TIM16_Init(void)
   /* USER CODE BEGIN TIM16_Init 2 */
 
   /* USER CODE END TIM16_Init 2 */
+
+}
+
+/**
+  * @brief TIM17 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM17_Init(void)
+{
+
+  /* USER CODE BEGIN TIM17_Init 0 */
+
+  /* USER CODE END TIM17_Init 0 */
+
+  /* USER CODE BEGIN TIM17_Init 1 */
+
+  /* USER CODE END TIM17_Init 1 */
+  htim17.Instance = TIM17;
+  htim17.Init.Prescaler = 7199;
+  htim17.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim17.Init.Period = 9999;
+  htim17.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim17.Init.RepetitionCounter = 0;
+  htim17.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim17) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM17_Init 2 */
+
+  /* USER CODE END TIM17_Init 2 */
 
 }
 
@@ -828,14 +815,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	}
 
 	if (htim == &htim7) {
-		LCD_SendString("HI");
 		if (user.timers[TIMER1].running && user.timers[TIMER1].remaining_time > 0) {
 			user.timers[TIMER1].remaining_time--;
-			display_timer();
-			if (user.timers[TIMER1].remaining_time == 0) {
-				user.timers[TIMER1].running = 0;
-				play_timer_alert(TIMER1);
-			}
+//			display_timer();
+//			if (user.timers[TIMER1].remaining_time == 0) {
+//				HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_4);
+//				user.timers[TIMER1].running = 0;
+//				play_timer_alert(TIMER1);
+//			}
 		}
 	}
 
@@ -861,7 +848,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		}
 	}
 
-	if (htim == &htim3) {
+	if (htim == &htim17) {
 		if (user.timers[TIMER4].running && user.timers[TIMER4].remaining_time > 0) {
 			user.timers[TIMER4].remaining_time--;
 			display_timer();
@@ -962,15 +949,15 @@ void CheckDeviceState(){
 		LCD_Clear();
 		LCD_SetCursor(0, 0);
 		EnterTimer();
-		if (deviceState.timerMode == TIMER1) {
-			LCD_SendString(user.timers[TIMER1].name);
-		} else if (deviceState.timerMode == TIMER2) {
-			LCD_SendString(user.timers[TIMER2].name);
-		} else if (deviceState.timerMode == TIMER3) {
-			LCD_SendString(user.timers[TIMER3].name);
-		} else {
-			LCD_SendString(user.timers[TIMER4].name);
-		}
+//		if (deviceState.timerMode == TIMER1) {
+//			LCD_SendString(user.timers[TIMER1].name);
+//		} else if (deviceState.timerMode == TIMER2) {
+//			LCD_SendString(user.timers[TIMER2].name);
+//		} else if (deviceState.timerMode == TIMER3) {
+//			LCD_SendString(user.timers[TIMER3].name);
+//		} else {
+//			LCD_SendString(user.timers[TIMER4].name);
+//		}
 		display_timer();
 	} else {
 		HAL_GPIO_WritePin(GPIOB, LED_D1_Pin, RESET);

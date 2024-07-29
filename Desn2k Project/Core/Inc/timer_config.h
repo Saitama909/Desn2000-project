@@ -32,8 +32,8 @@ typedef struct {
 
 typedef struct {
 	int duration;
-	int remaining_time;
-	int running;
+	volatile int remaining_time;
+	volatile int running;
 	char name[17];
 	Song alert;
 } Timer;
@@ -56,6 +56,7 @@ void check_timer_duration(int input_secs, int timer_index);
 void display_time(int input_secs);
 
 void enter_timer_name(int timer_index);
+void check_timer_name(int timer_index, char *input_text);
 void t9_typing(int key, char *input_text);
 
 void choose_timer_alert(int timer_index);

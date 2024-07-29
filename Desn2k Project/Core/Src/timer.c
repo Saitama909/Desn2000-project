@@ -33,10 +33,7 @@ void EnterTimer() {
 		char input = scan_keypad();
 		if (input == '#') {
 			start_stop_timer();
-//		} if (input == '*') {
-//			resetStopwatch();
 		}
-
 
 		if (hasStateChanged(deviceState)) {
 			return;
@@ -51,6 +48,16 @@ void start_stop_timer() {
 		// Start the timer
 		user.timers[timer_index].running = 1;
 		start_timer(timer_index);
+
+		while (user.timers[timer_index].running) {
+			display_time(user.timers[timer_index].remaining_time);
+
+			if (user.timers[timer_index].remaining_time == 0) {
+				display_timer(user.timers[timer_index].remaining_time);
+				stop_timer(timer_index);
+				play_timer_alert(timer_index);
+			}
+		}
 	} else {
 		// Stop the timer
 		user.timers[timer_index].running = 0;
@@ -70,7 +77,7 @@ void start_timer(int timer_index) {
 			HAL_TIM_Base_Start_IT(&htim2);
 			break;
 		case TIMER4:
-			HAL_TIM_Base_Start_IT(&htim3);
+			HAL_TIM_Base_Start_IT(&htim17);
 			break;
 	}
 }
@@ -87,7 +94,7 @@ void stop_timer(int timer_index) {
 			HAL_TIM_Base_Stop_IT(&htim2);
 			break;
 		case TIMER4:
-			HAL_TIM_Base_Stop_IT(&htim3);
+			HAL_TIM_Base_Stop_IT(&htim17);
 			break;
 	}
 }
@@ -99,6 +106,7 @@ void play_timer_alert(int timer_index) {
 		char key = scan_keypad();
 		if (key == '*') {
 			TIM1->CCR3 = 0;
+			user.timers[timer_index].running = 0;
 			user.timers[timer_index].remaining_time = user.timers[timer_index].duration;
 			break;
 		}

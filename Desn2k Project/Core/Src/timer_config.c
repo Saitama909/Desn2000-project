@@ -163,7 +163,7 @@ void display_time(int input_secs) {
 void check_timer_duration(int input_secs, int timer_index) {
 	int total_secs = input_secs;
 
-	if (total_secs < 30) {
+	if (total_secs < 0) {
 		LCD_Clear();
 		LCD_SetCursor(0, 0);
 		LCD_SendString("Minimum time is");
@@ -206,6 +206,7 @@ void enter_timer_name(int timer_index) {
 		char key = scan_keypad();
 		if (key) {
 			if (key == '#') {
+				check_timer_name(timer_index, input_text);
 				strncpy(user.timers[timer_index].name, input_text, 16);
 				user.timers[timer_index].name[16] = '\0';
 				break;
@@ -217,6 +218,28 @@ void enter_timer_name(int timer_index) {
 	}
 
 	LCD_Clear();
+}
+
+void check_timer_name(int timer_index, char *input_text) {
+	for (int i = 0; i < timer_index; i++) {
+		if (!strcmp(input_text, user.timers[i].name)) {
+			input_text = "";
+
+			LCD_Clear();
+			LCD_SetCursor(0, 0);
+			LCD_SendString("Name already");
+			LCD_SetCursor(1, 0);
+			LCD_SendString("exists");
+			HAL_Delay(1000);
+
+			LCD_Clear();
+			LCD_SetCursor(0, 0);
+			char buffer[22] = "";
+			snprintf(buffer, sizeof(buffer), "Timer %d name", timer_index + 1);
+			LCD_SendString(buffer);
+			enter_timer_name(timer_index);
+		}
+	}
 }
 
 void t9_typing(int key, char *input_text) {

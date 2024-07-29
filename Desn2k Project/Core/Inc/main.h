@@ -74,11 +74,11 @@ extern volatile DeviceState prevState;
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim6;
 extern TIM_HandleTypeDef htim7;
 extern TIM_HandleTypeDef htim8;
 extern TIM_HandleTypeDef htim16;
+extern TIM_HandleTypeDef htim17;
 extern RTC_HandleTypeDef hrtc;
 /* USER CODE END EC */
 
