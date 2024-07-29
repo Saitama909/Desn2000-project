@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -67,8 +67,8 @@ typedef struct {
 	ModeState modeState;
 } DeviceState;
 
-extern DeviceState deviceState;
-extern DeviceState prevState;
+extern volatile DeviceState deviceState;
+extern volatile DeviceState prevState;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -91,13 +91,16 @@ void Error_Handler(void);
 /* USER CODE BEGIN EFP */
 extern void toggleStopwatch(void);
 extern void resetStopwatch(void);
-//extern bool hasStateChanged(DeviceState currentState);
+extern bool hasStateChanged(DeviceState currentState);
+extern void Motor(int steps);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
 #define B1_EXTI_IRQn EXTI15_10_IRQn
+#define SRCLK_Pin GPIO_PIN_0
+#define SRCLK_GPIO_Port GPIOC
 #define SW1_Pin GPIO_PIN_1
 #define SW1_GPIO_Port GPIOA
 #define SW1_EXTI_IRQn EXTI1_IRQn
@@ -110,15 +113,33 @@ extern void resetStopwatch(void);
 #define SW2_EXTI_IRQn EXTI4_IRQn
 #define LD2_Pin GPIO_PIN_5
 #define LD2_GPIO_Port GPIOA
+#define COIL_A_Pin GPIO_PIN_5
+#define COIL_A_GPIO_Port GPIOC
 #define SW3_Pin GPIO_PIN_0
 #define SW3_GPIO_Port GPIOB
 #define SW3_EXTI_IRQn EXTI0_IRQn
+#define COIL_D_Pin GPIO_PIN_2
+#define COIL_D_GPIO_Port GPIOB
+#define LED_D1_Pin GPIO_PIN_10
+#define LED_D1_GPIO_Port GPIOB
+#define SER_Pin GPIO_PIN_15
+#define SER_GPIO_Port GPIOB
+#define COIL_C_Pin GPIO_PIN_7
+#define COIL_C_GPIO_Port GPIOC
+#define COIL_B_Pin GPIO_PIN_12
+#define COIL_B_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
 #define SWO_Pin GPIO_PIN_3
 #define SWO_GPIO_Port GPIOB
+#define LED_D2_Pin GPIO_PIN_4
+#define LED_D2_GPIO_Port GPIOB
+#define LED_D3_Pin GPIO_PIN_5
+#define LED_D3_GPIO_Port GPIOB
+#define RCLK_Pin GPIO_PIN_7
+#define RCLK_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 #define SW4_Pin GPIO_PIN_1
@@ -127,5 +148,3 @@ extern void resetStopwatch(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __MAIN_H */

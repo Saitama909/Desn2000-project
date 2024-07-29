@@ -37,6 +37,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define DEBOUNCE_DELAY_MS 50  // Debounce delay in milliseconds
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -54,8 +55,8 @@ TIM_HandleTypeDef htim16;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-DeviceState deviceState = {0};
-DeviceState previousState = {0};
+volatile DeviceState deviceState = {0};
+volatile DeviceState previousState = {0};
 
 int inMode = 0;
 int reload = 0;
@@ -71,6 +72,7 @@ static void MX_TIM1_Init(void);
 static void MX_TIM16_Init(void);
 /* USER CODE BEGIN PFP */
 void CheckDeviceState();
+void Motor(int steps);
 bool hasStateChanged(DeviceState currentState);
 /* USER CODE END PFP */
 
@@ -129,6 +131,8 @@ int main(void)
 
   welcome();
 
+  shiftByte(0);
+  latchData();
   LCD_Clear();
   LCD_SetCursor(0, 0);
   LCD_SendString("Timer Mode:Tim1");
@@ -490,7 +494,14 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, SRCLK_Pin|COIL_A_Pin|COIL_C_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|COIL_B_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, COIL_D_Pin|LED_D1_Pin|SER_Pin|LED_D2_Pin
+                          |LED_D3_Pin|RCLK_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -498,24 +509,40 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : SRCLK_Pin COIL_A_Pin COIL_C_Pin */
+  GPIO_InitStruct.Pin = SRCLK_Pin|COIL_A_Pin|COIL_C_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
   /*Configure GPIO pins : SW1_Pin SW2_Pin */
   GPIO_InitStruct.Pin = SW1_Pin|SW2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
+  /*Configure GPIO pins : LD2_Pin COIL_B_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin|COIL_B_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : SW3_Pin */
   GPIO_InitStruct.Pin = SW3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(SW3_GPIO_Port, &GPIO_InitStruct);
+  
+  /*Configure GPIO pins : COIL_D_Pin LED_D1_Pin SER_Pin LED_D2_Pin
+                           LED_D3_Pin RCLK_Pin */
+  GPIO_InitStruct.Pin = COIL_D_Pin|LED_D1_Pin|SER_Pin|LED_D2_Pin
+                          |LED_D3_Pin|RCLK_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
@@ -593,24 +620,37 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-	if (GPIO_Pin == SW1_Pin) {
-			deviceState.mainMode = !deviceState.mainMode;
-	}
-	if (GPIO_Pin == SW2_Pin) {
-		if (deviceState.mainMode == TIMER_MODE && deviceState.timerMode != TIMER4) {
-			deviceState.timerMode = deviceState.timerMode + 1;
-		} else if (deviceState.mainMode == TIMER_MODE) {
-			deviceState.timerMode = TIMER1;
-		} else if (deviceState.mainMode == CLOCK_MODE && deviceState.clockMode != STOPWATCH){
-			deviceState.clockMode = deviceState.clockMode + 1;
-		} else {
-			deviceState.clockMode = CLOCK;
-		}
-	}
-	if (GPIO_Pin == SW3_Pin) {
-		deviceState.modeState = !deviceState.modeState;
-	}
+volatile uint32_t last_interrupt_time_sw1 = 0;
+volatile uint32_t last_interrupt_time_sw2 = 0;
+volatile uint32_t last_interrupt_time_sw3 = 0;
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+    uint32_t current_time = HAL_GetTick();
+
+    if (GPIO_Pin == SW1_Pin) {
+        if (current_time - last_interrupt_time_sw1 >= DEBOUNCE_DELAY_MS) {
+            last_interrupt_time_sw1 = current_time;
+            deviceState.mainMode = !deviceState.mainMode;
+        }
+    } else if (GPIO_Pin == SW2_Pin) {
+        if (current_time - last_interrupt_time_sw2 >= DEBOUNCE_DELAY_MS) {
+            last_interrupt_time_sw2 = current_time;
+            if (deviceState.mainMode == TIMER_MODE && deviceState.timerMode != TIMER4) {
+                deviceState.timerMode = deviceState.timerMode + 1;
+            } else if (deviceState.mainMode == TIMER_MODE) {
+                deviceState.timerMode = TIMER1;
+            } else if (deviceState.mainMode == CLOCK_MODE && deviceState.clockMode != STOPWATCH) {
+                deviceState.clockMode = deviceState.clockMode + 1;
+            } else {
+                deviceState.clockMode = CLOCK;
+            }
+        }
+    } else if (GPIO_Pin == SW3_Pin) {
+        if (current_time - last_interrupt_time_sw3 >= DEBOUNCE_DELAY_MS) {
+            last_interrupt_time_sw3 = current_time;
+            deviceState.modeState = !deviceState.modeState;
+        }
+    }
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
@@ -641,8 +681,70 @@ bool hasStateChanged(DeviceState currentState) {
     return changed;
 }
 
+void Motor(int steps) {
+    int step = 0;
+    for (int i = 0; i < steps; i++) {
+    	switch(step) {
+			case 0:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 1);
+				break;
+			case 1:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 1);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 1);
+				break;
+			case 2:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 1);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
+				break;
+			case 3:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 1);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 1);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
+				break;
+			case 4:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 0);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 1);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
+				break;
+			case 5:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 1);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 1);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
+				break;
+			case 6:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 1);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 0);
+				break;
+			case 7:
+				HAL_GPIO_WritePin(COIL_B_GPIO_Port, COIL_B_Pin, 1);
+				HAL_GPIO_WritePin(COIL_D_GPIO_Port, COIL_D_Pin, 0);
+				HAL_GPIO_WritePin(COIL_A_GPIO_Port, COIL_A_Pin, 0);
+				HAL_GPIO_WritePin(COIL_C_GPIO_Port, COIL_C_Pin, 1);
+				break;
+		}
+        step = (step + 1) % 8; // Increment and wrap around the step counter
+        HAL_Delay(1); // Adjust delay as needed for your motor
+    }
+}
+
+
 void CheckDeviceState(){
 	if (deviceState.mainMode == TIMER_MODE) {
+		// indicate timer mode
+		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
+		HAL_GPIO_WritePin(GPIOB, LED_D1_Pin, SET);
 		if (deviceState.timerMode == TIMER1) {
 			LCD_SendString("Timer Mode:Tim1");
 		} else if (deviceState.timerMode == TIMER2) {
@@ -653,7 +755,13 @@ void CheckDeviceState(){
 			LCD_SendString("Timer Mode:Tim4");
 		}
 	} else {
+		HAL_GPIO_WritePin(GPIOB, LED_D1_Pin, RESET);
 		if (deviceState.clockMode == CLOCK) {
+			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
+			int motor = 0;
+			if (motor) {
+				Motor(4096);
+			}
 			if (deviceState.modeState == DISPLAY) {
 				// 	NOTE THIS CLOCK IS HARDCODED, YOU CANT GET REAL TIME UNLESS YOU USE
 				// EXTERNAL SOURCE
@@ -681,7 +789,8 @@ void CheckDeviceState(){
 			LCD_Reset();
 			reload = 1;
 		}
-	}
+}
+  
 // 	for testing
 //	if (deviceState.modeState == DISPLAY) {
 //		LCD_SetCursor(1, 0);
