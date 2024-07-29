@@ -60,7 +60,6 @@ void EXTI1_IRQHandler(void);
 void EXTI4_IRQHandler(void);
 void TIM1_UP_TIM16_IRQHandler(void);
 void EXTI15_10_IRQHandler(void);
-void RTC_Alarm_IRQHandler(void);
 void TIM6_DAC_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
