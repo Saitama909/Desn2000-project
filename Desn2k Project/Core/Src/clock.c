@@ -345,29 +345,6 @@ void DisplayEditedTime() {
 		    }
 
 		    initial = 0;
-
-
-
-
-
-
-//		char date_str[17];
-//		char time_str[17];
-//
-//		snprintf(date_str, sizeof(date_str),
-//				 "%02lu/%02lu/%04lu %s",
-//				 buffer[0], buffer[1], buffer[2], week_days[buffer[6] - 1]);
-//
-//		snprintf(time_str, sizeof(time_str),
-//				 "%02lu:%02lu:%02lu %s",
-//				 pm_time, buffer[4], buffer[5], am_pm);
-//
-//		// Clear LCD and display date and time
-//		LCD_Clear();
-//		LCD_SetCursor(0, 0);
-//		LCD_SendString(date_str);
-//		LCD_SetCursor(1, 0);  // Move to second line
-//		LCD_SendString(time_str);
 }
 
 void IncreaseSelection() {
