@@ -25,6 +25,7 @@
 #include "timer_config.h"
 #include "stopwatch.h"
 #include "clock.h"
+#include "stdtimer.h"
 
 #include "stdio.h"
 #include "stdbool.h"
@@ -54,6 +55,7 @@ RTC_HandleTypeDef hrtc;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim6;
+TIM_HandleTypeDef htim15;
 TIM_HandleTypeDef htim16;
 
 UART_HandleTypeDef huart2;
@@ -64,6 +66,7 @@ volatile DeviceState previousState = {0};
 
 int inMode = 0;
 int reload = 0;
+int playAlert = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -76,11 +79,13 @@ static void MX_TIM6_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_ADC2_Init(void);
+static void MX_TIM15_Init(void);
 /* USER CODE BEGIN PFP */
 void CheckDeviceState();
 void Motor(int steps);
 bool hasStateChanged(DeviceState currentState);
 void LightBrightness();
+void checkSTDTimer();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -124,6 +129,7 @@ int main(void)
   MX_TIM16_Init();
   MX_TIM3_Init();
   MX_ADC2_Init();
+  MX_TIM15_Init();
   /* USER CODE BEGIN 2 */
   /* USER CODE END 2 */
 
@@ -210,12 +216,14 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_RTC
-                              |RCC_PERIPHCLK_TIM1|RCC_PERIPHCLK_TIM16
-                              |RCC_PERIPHCLK_ADC12|RCC_PERIPHCLK_TIM34;
+                              |RCC_PERIPHCLK_TIM1|RCC_PERIPHCLK_TIM15
+                              |RCC_PERIPHCLK_TIM16|RCC_PERIPHCLK_ADC12
+                              |RCC_PERIPHCLK_TIM34;
   PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
   PeriphClkInit.Adc12ClockSelection = RCC_ADC12PLLCLK_DIV1;
   PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
   PeriphClkInit.Tim1ClockSelection = RCC_TIM1CLK_HCLK;
+  PeriphClkInit.Tim15ClockSelection = RCC_TIM15CLK_HCLK;
   PeriphClkInit.Tim16ClockSelection = RCC_TIM16CLK_HCLK;
   PeriphClkInit.Tim34ClockSelection = RCC_TIM34CLK_HCLK;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
@@ -526,6 +534,52 @@ static void MX_TIM6_Init(void)
 }
 
 /**
+  * @brief TIM15 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM15_Init(void)
+{
+
+  /* USER CODE BEGIN TIM15_Init 0 */
+
+  /* USER CODE END TIM15_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM15_Init 1 */
+
+  /* USER CODE END TIM15_Init 1 */
+  htim15.Instance = TIM15;
+  htim15.Init.Prescaler = 7199;
+  htim15.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim15.Init.Period = 9999;
+  htim15.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim15.Init.RepetitionCounter = 0;
+  htim15.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim15) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim15, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim15, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM15_Init 2 */
+
+  /* USER CODE END TIM15_Init 2 */
+
+}
+
+/**
   * @brief TIM16 Initialization Function
   * @param None
   * @retval None
@@ -772,6 +826,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		seconds++;
 	}
 
+	if (htim == &htim15) {
+		if (time_left > 0) {
+			time_left--;
+		}
+		if (time_left == 0 && timerRunning == 1) {
+			timerRunning = 0;
+			HAL_TIM_Base_Stop_IT(&htim15);
+			playAlert = 1;
+		}
+
+	}
+
 	if (htim == &htim16) {
 		HAL_TIM_Base_Stop_IT(&htim16);
 		TIM1->CCR3 = 0;
@@ -780,6 +846,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 }
 
 bool hasStateChanged(DeviceState currentState) {
+	checkSTDTimer();
     bool changed = false;
 
     if (currentState.mainMode != previousState.mainMode ||
@@ -793,6 +860,13 @@ bool hasStateChanged(DeviceState currentState) {
     previousState = currentState;
 
     return changed;
+}
+
+void checkSTDTimer() {
+	if (playAlert && deviceState.mainMode == CLOCK_MODE) {
+		 stdTimerAlert();
+		 playAlert = 0;
+	}
 }
 
 void Motor(int steps) {
@@ -914,10 +988,19 @@ void CheckDeviceState(){
 				reload = 1;
 				deviceState.modeState = DISPLAY;
 			}
+		  shiftByte(0);
+		  latchData();
 		} else if (deviceState.clockMode == ALARM) {
 			LCD_SendString("Clock Mode:Alarm");
 		} else if (deviceState.clockMode == COUNTDOWN) {
-			LCD_SendString("Clock Mode:Count");
+			if (deviceState.modeState == DISPLAY) {
+				DisplayTimer();
+				reload = 1;
+			} else {
+				ConfigTimer();
+				deviceState.modeState = DISPLAY;
+			}
+
 		} else {
 			inMode = 1;
 			EnterStopwatch();

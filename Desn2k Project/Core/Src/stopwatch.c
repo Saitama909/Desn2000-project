@@ -48,12 +48,12 @@ void updateLCD(uint32_t count) {
     uint32_t total_seconds = count;
     uint32_t hours = total_seconds / 3600;
     uint32_t minutes = (total_seconds % 3600) / 60;
-    uint32_t seconds = total_seconds % 60;
-    if (prevseconds == seconds) {
+    uint32_t seconds_LCD = total_seconds % 60;
+    if (prevseconds == seconds_LCD) {
     		return;
 	}
-    prevseconds = seconds;
-    snprintf(buffer, sizeof(buffer), "%02lu:%02lu:%02lu", hours, minutes, seconds);
+    prevseconds = seconds_LCD;
+    snprintf(buffer, sizeof(buffer), "%02lu:%02lu:%02lu", hours, minutes, seconds_LCD);
     LCD_SetCursor(0, 0);
     LCD_SendString(buffer);
 }

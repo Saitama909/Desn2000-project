@@ -46,6 +46,7 @@ typedef struct {
 
 extern User user;
 extern volatile int note_playing;
+extern Song songs[6];
 
 void welcome();
 void choose_timer_count();
