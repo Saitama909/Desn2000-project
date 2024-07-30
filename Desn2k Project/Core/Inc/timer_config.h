@@ -47,7 +47,7 @@ typedef struct {
 	Timer timers[4];
 } User;
 
-extern User user;
+extern volatile User user;
 extern volatile int note_playing;
 
 void welcome();
@@ -65,6 +65,6 @@ void t9_typing(int key, char *input_text);
 void choose_timer_alert(int timer_index);
 bool check_timer_alert(int timer_index, int selected_song);
 void init_alerts();
-void play_alert(Song *song);
+void play_alert(volatile Song *song);
 
 #endif /* SRC_TIMER_CONFIG_H_ */

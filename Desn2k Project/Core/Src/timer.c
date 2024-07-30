@@ -24,8 +24,20 @@ void display_timer() {
 		LCD_SetCursor(0, 0);
 		LCD_SendString(user.timers[deviceState.timerMode].name);
 
-		display_time(user.timers[deviceState.timerMode].remaining_time);
+		update_time(user.timers[deviceState.timerMode].remaining_time);
 	}
+}
+
+void update_time(int input_secs) {
+	int hours = input_secs / 3600;
+	int mins = (input_secs % 3600) / 60;
+	int secs = input_secs % 60;
+
+	char buffer[22] = "";
+	snprintf(buffer, sizeof(buffer), "%01d:%02d:%02d", hours, mins, secs);
+
+	LCD_SetCursor(1, 0);
+	LCD_SendString(buffer);
 }
 
 void EnterTimer() {
@@ -33,38 +45,19 @@ void EnterTimer() {
 
 	while(1) {
 		char input = scan_keypad();
-		if (input == '#') {
-			LCD_SendString("1");
-			start_stop_timer();
+		if (input == 'A') {
+			start_timer(TIMER1);
+		} else if (input == 'B') {
+			start_timer(TIMER2);
+		} else if (input == 'C') {
+			start_timer(TIMER3);
+		} else if (input == 'D') {
+			start_timer(TIMER4);
 		}
 
 		if (hasStateChanged(deviceState)) {
 			return;
 		}
-	}
-}
-
-void start_stop_timer() {
-	int timer_index = deviceState.timerMode;
-
-	if (!user.timers[timer_index].running) {
-		// Start the timer
-		LCD_SendString("2");
-		start_timer(timer_index);
-
-		while (user.timers[timer_index].running) {
-			display_time(user.timers[timer_index].remaining_time);
-
-			if (user.timers[timer_index].remaining_time == 0) {
-				display_timer(user.timers[timer_index].remaining_time);
-				stop_timer(timer_index);
-				timer_playing = 1;
-				play_timer_alert(timer_index);
-			}
-		}
-	} else {
-		// Stop the timer
-		stop_timer(timer_index);
 	}
 }
 
@@ -76,7 +69,6 @@ void start_timer(int timer_index) {
 			HAL_TIM_Base_Start_IT(&htim7);
 			break;
 		case TIMER2:
-			LCD_SendString("3");
 			HAL_TIM_Base_Start_IT(&htim8);
 			break;
 		case TIMER3:
@@ -85,6 +77,17 @@ void start_timer(int timer_index) {
 		case TIMER4:
 			HAL_TIM_Base_Start_IT(&htim17);
 			break;
+	}
+
+	while (user.timers[timer_index].running) {
+		update_time(user.timers[timer_index].remaining_time);
+
+		if (user.timers[timer_index].remaining_time == 0) {
+			display_timer(user.timers[timer_index].remaining_time);
+			stop_timer(timer_index);
+			timer_playing = 1;
+			play_timer_alert(timer_index);
+		}
 	}
 }
 
@@ -113,5 +116,5 @@ void play_timer_alert(int timer_index) {
 	}
 	TIM1->CCR3 = 0;
 	user.timers[timer_index].remaining_time = user.timers[timer_index].duration;
-	display_time(user.timers[timer_index].remaining_time);
+	update_time(user.timers[timer_index].remaining_time);
 }

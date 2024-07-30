@@ -77,8 +77,8 @@ static void MX_TIM6_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_TIM8_Init(void);
 static void MX_TIM17_Init(void);
+static void MX_TIM8_Init(void);
 /* USER CODE BEGIN PFP */
 void CheckDeviceState();
 void Motor(int steps);
@@ -126,8 +126,8 @@ int main(void)
   MX_TIM16_Init();
   MX_TIM7_Init();
   MX_TIM2_Init();
-  MX_TIM8_Init();
   MX_TIM17_Init();
+  MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
   /* USER CODE END 2 */
 
@@ -150,6 +150,7 @@ int main(void)
   LCD_Clear();
   LCD_SetCursor(0, 0);
 
+//  deviceState.mainMode = TIMER_MODE;
   EnterTimer();
 
   while (1)
@@ -509,9 +510,9 @@ static void MX_TIM8_Init(void)
 
   /* USER CODE END TIM8_Init 1 */
   htim8.Instance = TIM8;
-  htim8.Init.Prescaler = 7199;
+  htim8.Init.Prescaler = 0;
   htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim8.Init.Period = 9999;
+  htim8.Init.Period = 65535;
   htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim8.Init.RepetitionCounter = 0;
   htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;

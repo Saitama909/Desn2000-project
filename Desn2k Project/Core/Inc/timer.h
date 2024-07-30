@@ -12,8 +12,8 @@ extern volatile int timer_playing;
 
 void init_timers();
 void display_timer();
+void update_time(int input_secs);
 void EnterTimer();
-void start_stop_timer();
 void start_timer(int timer_index);
 void stop_timer(int timer_index);
 void play_timer_alert(int timer_index);

@@ -10,7 +10,7 @@
 #include "timer_config.h"
 
 
-User user = {
+volatile User user = {
 	.state = CONFIGURE_TIMER_COUNT,
 	.num_timers = 0
 };
@@ -155,7 +155,7 @@ void display_time(int input_secs) {
 	int secs = input_secs % 100;
 
 	char buffer[22] = "";
-	snprintf(buffer, sizeof(buffer), "%02d:%02d:%02d", hours, mins, secs);
+	snprintf(buffer, sizeof(buffer), "%01d:%02d:%02d", hours, mins, secs);
 
 	LCD_SetCursor(1, 0);
 	LCD_SendString(buffer);
@@ -222,6 +222,19 @@ void enter_timer_name(int timer_index) {
 					LCD_SendString(buffer);
 
 					memset(input_text, 0, 17);
+				} else if (!strcmp(input_text, "")) {
+					LCD_Clear();
+					LCD_SetCursor(0, 0);
+					LCD_SendString("You must provide");
+					LCD_SetCursor(1, 0);
+					LCD_SendString("a name");
+					HAL_Delay(1000);
+
+					LCD_Clear();
+					LCD_SetCursor(0, 0);
+					char buffer[22] = "";
+					snprintf(buffer, sizeof(buffer), "Timer %d name", timer_index + 1);
+					LCD_SendString(buffer);
 				} else {
 					strncpy(user.timers[timer_index].name, input_text, 16);
 					user.timers[timer_index].name[16] = '\0';
@@ -322,6 +335,21 @@ void choose_timer_alert(int timer_index) {
 					LCD_SendString("Pick song 1-6: ");
 
 					selected_song = -1;
+				} else if (selected_song == -1) {
+					LCD_Clear();
+					LCD_SetCursor(0, 0);
+					LCD_SendString("You must select");
+					LCD_SetCursor(1, 0);
+					LCD_SendString("an alert");
+					HAL_Delay(1000);
+
+					LCD_Clear();
+					LCD_SetCursor(0, 0);
+					char buffer[22] = "";
+					snprintf(buffer, sizeof(buffer), "Timer %d alert", timer_index + 1);
+					LCD_SendString(buffer);
+					LCD_SetCursor(1, 0);
+					LCD_SendString("Pick song 1-6: ");
 				} else {
 					user.timers[timer_index].alert = songs[selected_song];
 					break;
@@ -430,7 +458,7 @@ void init_alerts() {
 	songs[5] = c_maj_scale;
 }
 
-void play_alert(Song *song) {
+void play_alert(volatile Song *song) {
     for (int i = 0; i < song->num_notes; i++) {
         Note note = song->notes[i];
         TIM1->ARR = (72000000 / (note.freq * 1000)) - 1;
