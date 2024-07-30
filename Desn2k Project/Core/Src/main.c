@@ -794,16 +794,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
             deviceState.mainMode = !deviceState.mainMode;
         }
     } else if (GPIO_Pin == SW2_Pin) {
-    	if (current_time - last_interrupt_time_sw2 >= DEBOUNCE_DELAY_MS) {
-			last_interrupt_time_sw2 = current_time;
-			if (deviceState.mainMode == TIMER_MODE) {
-				deviceState.timerMode = (deviceState.timerMode + 1) % user.num_timers;
-			} else if (deviceState.mainMode == CLOCK_MODE && deviceState.clockMode != STOPWATCH) {
-				deviceState.clockMode = deviceState.clockMode + 1;
-			} else {
-				deviceState.clockMode = CLOCK;
-			}
-		}
+        if (current_time - last_interrupt_time_sw2 >= DEBOUNCE_DELAY_MS) {
+            last_interrupt_time_sw2 = current_time;
+            if (deviceState.mainMode == TIMER_MODE && deviceState.timerMode != user.num_timers - 1) {
+                deviceState.timerMode = deviceState.timerMode + 1;
+            } else if (deviceState.mainMode == TIMER_MODE) {
+                deviceState.timerMode = TIMER1;
+            } else if (deviceState.mainMode == CLOCK_MODE && deviceState.clockMode != STOPWATCH) {
+                deviceState.clockMode = deviceState.clockMode + 1;
+            } else {
+                deviceState.clockMode = CLOCK;
+            }
+        }
     } else if (GPIO_Pin == SW3_Pin) {
         if (current_time - last_interrupt_time_sw3 >= DEBOUNCE_DELAY_MS) {
             last_interrupt_time_sw3 = current_time;
@@ -930,7 +932,6 @@ void CheckDeviceState(){
 		// indicate timer mode
 		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
 		LCD_Clear();
-		EnterTimer();
 		display_timer();
 	} else {
 		HAL_GPIO_WritePin(GPIOB, LED_D1_Pin, RESET);

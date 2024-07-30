@@ -9,6 +9,7 @@
 #include "lcd_keypad.h"
 #include "timer_config.h"
 
+
 User user = {
 	.state = CONFIGURE_TIMER_COUNT,
 	.num_timers = 0
@@ -206,40 +207,43 @@ void enter_timer_name(int timer_index) {
 		char key = scan_keypad();
 		if (key) {
 			if (key == '#') {
-				check_timer_name(timer_index, input_text);
-				strncpy(user.timers[timer_index].name, input_text, 16);
-				user.timers[timer_index].name[16] = '\0';
-				break;
+				if (check_timer_name(timer_index, input_text)) {
+					LCD_Clear();
+					LCD_SetCursor(0, 0);
+					LCD_SendString("Name already");
+					LCD_SetCursor(1, 0);
+					LCD_SendString("exists");
+					HAL_Delay(1000);
+
+					LCD_Clear();
+					LCD_SetCursor(0, 0);
+					char buffer[22] = "";
+					snprintf(buffer, sizeof(buffer), "Timer %d name", timer_index + 1);
+					LCD_SendString(buffer);
+
+					memset(input_text, 0, 17);
+				} else {
+					strncpy(user.timers[timer_index].name, input_text, 16);
+					user.timers[timer_index].name[16] = '\0';
+					break;
+				}
 			} else {
 				t9_typing(key, input_text);
 			}
 		}
-		HAL_Delay(100);
+//		HAL_Delay(100);
 	}
 
 	LCD_Clear();
 }
 
-void check_timer_name(int timer_index, char *input_text) {
+bool check_timer_name(int timer_index, char *input_text) {
 	for (int i = 0; i < timer_index; i++) {
 		if (!strcmp(input_text, user.timers[i].name)) {
-			input_text = "";
-
-			LCD_Clear();
-			LCD_SetCursor(0, 0);
-			LCD_SendString("Name already");
-			LCD_SetCursor(1, 0);
-			LCD_SendString("exists");
-			HAL_Delay(1000);
-
-			LCD_Clear();
-			LCD_SetCursor(0, 0);
-			char buffer[22] = "";
-			snprintf(buffer, sizeof(buffer), "Timer %d name", timer_index + 1);
-			LCD_SendString(buffer);
-			enter_timer_name(timer_index);
+			return true;
 		}
 	}
+	return false;
 }
 
 void t9_typing(int key, char *input_text) {

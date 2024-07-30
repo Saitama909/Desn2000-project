@@ -8,6 +8,8 @@
 #ifndef SRC_TIMER_CONFIG_H_
 #define SRC_TIMER_CONFIG_H_
 
+#include "stdbool.h"
+
 enum State {
 	CONFIGURE_TIMER_COUNT,
 	CONFIGURE_TIMER_DURATION,
@@ -56,7 +58,7 @@ void check_timer_duration(int input_secs, int timer_index);
 void display_time(int input_secs);
 
 void enter_timer_name(int timer_index);
-void check_timer_name(int timer_index, char *input_text);
+bool check_timer_name(int timer_index, char *input_text);
 void t9_typing(int key, char *input_text);
 
 void choose_timer_alert(int timer_index);
