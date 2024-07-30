@@ -34,6 +34,7 @@ void EnterTimer() {
 	while(1) {
 		char input = scan_keypad();
 		if (input == '#') {
+			LCD_SendString("1");
 			start_stop_timer();
 		}
 
@@ -48,6 +49,7 @@ void start_stop_timer() {
 
 	if (!user.timers[timer_index].running) {
 		// Start the timer
+		LCD_SendString("2");
 		start_timer(timer_index);
 
 		while (user.timers[timer_index].running) {
@@ -74,6 +76,7 @@ void start_timer(int timer_index) {
 			HAL_TIM_Base_Start_IT(&htim7);
 			break;
 		case TIMER2:
+			LCD_SendString("3");
 			HAL_TIM_Base_Start_IT(&htim8);
 			break;
 		case TIMER3:
@@ -110,5 +113,5 @@ void play_timer_alert(int timer_index) {
 	}
 	TIM1->CCR3 = 0;
 	user.timers[timer_index].remaining_time = user.timers[timer_index].duration;
-	display_time(timer_index);
+	display_time(user.timers[timer_index].remaining_time);
 }

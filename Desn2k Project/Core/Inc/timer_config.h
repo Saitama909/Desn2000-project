@@ -30,6 +30,7 @@ typedef struct {
 typedef struct {
     Note notes[16];
     uint16_t num_notes;
+    int id;
 } Song;
 
 typedef struct {
@@ -62,6 +63,7 @@ bool check_timer_name(int timer_index, char *input_text);
 void t9_typing(int key, char *input_text);
 
 void choose_timer_alert(int timer_index);
+bool check_timer_alert(int timer_index, int selected_song);
 void init_alerts();
 void play_alert(Song *song);
 

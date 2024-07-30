@@ -813,6 +813,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
         }
     } else if (GPIO_Pin == B1_Pin) {
     	timer_playing = 0;
+    	HAL_TIM_Base_Stop_IT(&htim16);
+    	note_playing = 0;
     }
 }
 
@@ -932,6 +934,7 @@ void CheckDeviceState(){
 		// indicate timer mode
 		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
 		LCD_Clear();
+		EnterTimer();
 		display_timer();
 	} else {
 		HAL_GPIO_WritePin(GPIOB, LED_D1_Pin, RESET);

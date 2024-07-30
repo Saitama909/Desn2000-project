@@ -231,7 +231,6 @@ void enter_timer_name(int timer_index) {
 				t9_typing(key, input_text);
 			}
 		}
-//		HAL_Delay(100);
 	}
 
 	LCD_Clear();
@@ -306,11 +305,39 @@ void choose_timer_alert(int timer_index) {
 				LCD_Data(key);
 				play_alert(&songs[num - 1]);
 			} else if (key == '#') {
-				user.timers[timer_index].alert = songs[selected_song];
-				break;
+				if (check_timer_alert(timer_index, selected_song)) {
+					LCD_Clear();
+					LCD_SetCursor(0, 0);
+					LCD_SendString("Alert already");
+					LCD_SetCursor(1, 0);
+					LCD_SendString("exists");
+					HAL_Delay(1000);
+
+					LCD_Clear();
+					LCD_SetCursor(0, 0);
+					char buffer[22] = "";
+					snprintf(buffer, sizeof(buffer), "Timer %d alert", timer_index + 1);
+					LCD_SendString(buffer);
+					LCD_SetCursor(1, 0);
+					LCD_SendString("Pick song 1-6: ");
+
+					selected_song = -1;
+				} else {
+					user.timers[timer_index].alert = songs[selected_song];
+					break;
+				}
 			}
 		}
 	}
+}
+
+bool check_timer_alert(int timer_index, int selected_song) {
+	for (int i = 0; i < timer_index; i++) {
+		if (selected_song == user.timers[i].alert.id) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void init_alerts() {
@@ -321,7 +348,8 @@ void init_alerts() {
             {392, 500},
             {523, 750}
         },
-        .num_notes = 4
+        .num_notes = 4,
+		.id = 0
     };
     songs[0] = c_maj_arp;
 
@@ -332,7 +360,8 @@ void init_alerts() {
             {415, 500},
             {466, 500}
         },
-        .num_notes = 4
+        .num_notes = 4,
+		.id = 1
     };
     songs[1] = windows_shutdown;
 
@@ -345,7 +374,8 @@ void init_alerts() {
             {392, 200},
             {330, 200},
         },
-        .num_notes = 6
+        .num_notes = 6,
+		.id = 2
     };
     songs[2] = annoying;
 
@@ -362,7 +392,8 @@ void init_alerts() {
             {293, 100},
             {261, 600},
         },
-        .num_notes = 10
+        .num_notes = 10,
+		.id = 3
     };
     songs[3] = amongus;
 
@@ -377,7 +408,8 @@ void init_alerts() {
 			{329, 300},
 			{261, 300},
 		},
-		.num_notes = 8
+		.num_notes = 8,
+		.id = 4
     };
     songs[4] = doorbell;
 
@@ -392,7 +424,8 @@ void init_alerts() {
 			{493, 200},
 			{523, 200},
 		},
-		.num_notes = 8
+		.num_notes = 8,
+		.id = 5
 	};
 	songs[5] = c_maj_scale;
 }
