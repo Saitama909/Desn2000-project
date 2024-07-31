@@ -10,7 +10,7 @@
 #include "main.h"
 #include "stdbool.h"
 
-volatile uint32_t seconds = 0;
+volatile uint32_t milliseconds = 0;
 int stopwatchRunning = 0;
 uint32_t prevseconds;
 
@@ -18,7 +18,7 @@ void toggleStopwatch(void);
 
 void EnterStopwatch() {
 	LCD_Reset();
-	updateLCD(seconds);
+	updateLCD(milliseconds);
 	prevseconds = -1;
 	while(1) {
 		char input = scan_keypad();
@@ -27,9 +27,9 @@ void EnterStopwatch() {
 		} if (input == '*') {
 			resetStopwatch();
 		}
-		updateLCD(seconds);
+		updateLCD(milliseconds);
 		if (stopwatchRunning) {
-			updateLCD(seconds);
+			updateLCD(milliseconds);
 			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
 		}
 		if (hasStateChanged(deviceState)) {
@@ -45,7 +45,7 @@ void LCD_Reset() {
 
 void updateLCD(uint32_t count) {
     char buffer[17];
-    uint32_t total_seconds = count;
+    uint32_t total_seconds = count / 1000;
     uint32_t hours = total_seconds / 3600;
     uint32_t minutes = (total_seconds % 3600) / 60;
     uint32_t seconds = total_seconds % 60;
@@ -69,7 +69,7 @@ void toggleStopwatch(void) {
 
 void resetStopwatch(void) {
     HAL_TIM_Base_Stop_IT(&htim6);
-    seconds = 0;
+    milliseconds = 0;
     stopwatchRunning = false;
 }
 

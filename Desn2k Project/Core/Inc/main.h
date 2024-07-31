@@ -75,6 +75,7 @@ extern volatile DeviceState prevState;
 /* USER CODE BEGIN EC */
 extern TIM_HandleTypeDef htim6;
 extern TIM_HandleTypeDef htim16;
+extern TIM_HandleTypeDef htim1;
 extern RTC_HandleTypeDef hrtc;
 /* USER CODE END EC */
 

@@ -12,6 +12,6 @@ void EnterStopwatch();
 void LCD_Reset();
 //void toggleStopwatch(void);
 //void resetStopwatch(void);
-extern volatile uint32_t seconds;
+extern volatile uint32_t milliseconds;
 
 #endif /* INC_STOPWATCH_H_ */

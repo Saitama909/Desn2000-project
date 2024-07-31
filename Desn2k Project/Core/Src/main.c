@@ -25,6 +25,7 @@
 #include "timer_config.h"
 #include "stopwatch.h"
 #include "clock.h"
+#include "alarm.h"
 
 #include "stdio.h"
 #include "stdbool.h"
@@ -295,6 +296,7 @@ static void MX_RTC_Init(void)
 
   RTC_TimeTypeDef sTime = {0};
   RTC_DateTypeDef sDate = {0};
+  RTC_AlarmTypeDef sAlarm = {0};
 
   /* USER CODE BEGIN RTC_Init 1 */
 
@@ -338,8 +340,27 @@ static void MX_RTC_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN RTC_Init 2 */
 
+  /** Enable the Alarm A
+  */
+  sAlarm.AlarmTime.Hours = 0x18;
+  sAlarm.AlarmTime.Minutes = 0x16;
+  sAlarm.AlarmTime.Seconds = 0x1;
+  sAlarm.AlarmTime.SubSeconds = 0x0;
+  sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
+  sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+  sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+  sAlarm.AlarmDateWeekDay = 0x1;
+  sAlarm.Alarm = RTC_ALARM_A;
+  if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RTC_Init 2 */
+  HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(RTC_Alarm_IRQn);
   /* USER CODE END RTC_Init 2 */
 
 }
@@ -505,9 +526,9 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 7199;
+  htim6.Init.Prescaler = 71;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 9999;
+  htim6.Init.Period = 999;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -769,7 +790,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim == &htim6) {
-		seconds++;
+		milliseconds++;
 	}
 
 	if (htim == &htim16) {
@@ -916,6 +937,8 @@ void CheckDeviceState(){
 			}
 		} else if (deviceState.clockMode == ALARM) {
 			LCD_SendString("Clock Mode:Alarm");
+			Get_User_Alarm_Input();
+
 		} else if (deviceState.clockMode == COUNTDOWN) {
 			LCD_SendString("Clock Mode:Count");
 		} else {
