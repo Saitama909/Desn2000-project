@@ -14,7 +14,7 @@ volatile uint32_t time_left = 0;
 int alert_num = 1;
 uint32_t prevseconds_LCD = -1;
 volatile int timerRunning = 0;
-
+int exitConfig;
 void ConfigTimer();
 int EnterTimerDuration();
 int CheckTimerDuration(int input_secs);
@@ -37,12 +37,13 @@ void DisplayTimer() {
 		char input = scan_keypad();
 		if (input == '#' && time_left != 0 && duration != 0) {
 			toggleTimer();
+			updateTimerLCD(time_left);
 		} if (input == '*') {
 			resetTimer();
+			updateTimerLCD(time_left);
 		}
 		if (timerRunning) {
 			updateTimerLCD(time_left);
-			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
 		}
 		if (hasStateChanged(deviceState)) {
 			return;
@@ -83,12 +84,12 @@ void updateTimerLCD(uint32_t count) {
 
 
 void ConfigTimer() {
+	exitConfig = 0;
 	resetTimer();
 	LCD_Clear();
 	LCD_SetCursor(0, 0);
 	LCD_SendString("Timer duration:");
-	while(!EnterTimerDuration()) {
-
+	while(!EnterTimerDuration() && exitConfig == 0) {
 	}
 
 //	LCD_Clear();
@@ -96,7 +97,9 @@ void ConfigTimer() {
 //	LCD_SendString("Timer alert:");
 //	ChooseTimerAlert();
 
-
+	if (exitConfig == 1) {
+		exitConfig = 0;
+	}
 	LCD_Clear();
 	LCD_SetCursor(0, 0);
 }
@@ -122,6 +125,10 @@ int EnterTimerDuration() {
 				}
 				return 0;
 			}
+		}
+		if (hasStateChanged(deviceState)) {
+			exitConfig = 1;
+			return 0;
 		}
 	}
 }
@@ -218,7 +225,7 @@ void stdTimerAlert() {
 	}
 	TIM1->CCR3 = 0;
 //	play_alert(&songs[3]);
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 2; i++) {
 		shiftByte(0b1111111111111111);
 		latchData();
 		HAL_Delay(500);

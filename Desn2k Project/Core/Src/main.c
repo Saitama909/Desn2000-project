@@ -840,7 +840,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 bool hasStateChanged(DeviceState currentState) {
 	checkSTDTimer();
     bool changed = false;
-
+    if (currentState.mainMode == CLOCK_MODE && currentState.clockMode == STOPWATCH && currentState.modeState == CONFIG) {
+    	currentState.modeState = DISPLAY;
+    }
     if (currentState.mainMode != previousState.mainMode ||
         currentState.timerMode != previousState.timerMode ||
         currentState.clockMode != previousState.clockMode ||
@@ -945,8 +947,8 @@ void LightBrightness() {
 }
 
 void CheckDeviceState(){
-	// update previous state
-	previousState = deviceState;
+	// update previous state, since it only matters if you change state whilst your in a mode
+	hasStateChanged(deviceState);
 	if (deviceState.mainMode == TIMER_MODE) {
 		// indicate timer mode
 //		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
