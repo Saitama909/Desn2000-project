@@ -26,10 +26,9 @@ void toggleTimer(void);
 void DisplayTimer();
 void stdTimerAlert();
 void updateTimerLCD(uint32_t count);
-
+int count = 0;
 void DisplayTimer() {
-	LCD_Clear();
-	LCD_SetCursor(0, 0);
+	count ++;
 	LCD_SendString("Standard Timer:");
 	LCD_SetCursor(1, 0);
 	prevseconds_LCD = -1;
@@ -41,7 +40,6 @@ void DisplayTimer() {
 		} if (input == '*') {
 			resetTimer();
 		}
-		updateTimerLCD(time_left);
 		if (timerRunning) {
 			updateTimerLCD(time_left);
 			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
