@@ -118,6 +118,58 @@ The clock mode has two states: `DISPLAY` and `CONFIG`. It displays the time in t
 - **RTC Timer**: Both `DISPLAY` and `CONFIG` states use the `RTC` Timer to retrieve the current time. It is initialized in `main.c` through the `hrtc` in the `static void MX_RTC_Init(void)` function.
 - **Initial Display Time**: When the timer is first switched on, the default display time is set to the value of `hrtc`.
 
+### Standard Clock Timer
+#### Overview
+
+The standard clock timer mode has two states: `DISPLAY` and `CONFIG`. In `DISPLAY` mode it displays the timer on the bottom row of the LCD in the format ``hh:mm:ss`` and can be started, stopped or reset. In the `CONFIG` mode it prompts the user to enter a timer duration on the bottom row of the LCD in the format ``hh:mm:ss`` 
+
+#### Software Structure
+
+- **Main Functionality File**: `stdtimer.c`
+- **State Functions**:
+  - `DISPLAY`: Handled by `void DisplayTimer()`.
+  - `CONFIG`: Handled by `void ConfigTimer()`.
+
+#### Subsystems
+
+- **DISPLAY State**:
+  - Components: **LCD**, **Keypad**, **Microcontroller**.
+- **CONFIG State**:
+  - Components: **LCD**, **Keypad**, **Microcontroller**.
+
+#### Standard Clock Timer Functionality
+#### Configuring the Timer
+
+1. **Initial Configuration**:
+   - Begins with `void ConfigTimer()`, resetting the timer and displaying the prompt to enter the timer duration.
+2. **Entering Timer Duration**:
+   - Enters `int EnterTimerDuration()`, allowing the user to input the duration in the format `HHMMSS`.
+   - Displays the entered time on the LCD.
+3. **Validating Timer Duration**:
+   - After entering the duration, the function `int CheckTimerDuration(int input_secs)` validates the entered time.
+     - If the time is less than 30 seconds or more than 1 hour, it shows an error message on the LCD.
+     - If the time is valid, it sets `duration` and `time_left` to the entered value in seconds.
+4. **Returning to Display State**:
+   - Exits `ConfigTimer()` and transitions to the `DisplayTimer()` function.
+
+#### Displaying the Timer
+
+1. **Initial Display**:
+   - Begins with `void DisplayTimer()`, clearing the LCD and displaying "Standard Timer:" on the first row.
+   - The second row shows the remaining time, which updates every second.
+2. **Handling Keypad Input**:
+   - '#' key toggles the timer between running and stopped states.
+   - '*' key resets the timer to the initial duration.
+3. **Updating Timer on LCD**:
+   - The function `void updateTimerLCD(uint32_t count)` updates the LCD display with the current timer value in `HH:MM:SS` format.
+4. **Running the Timer**:
+   - If the timer is running, it decreases `time_left` every second and updates the LCD.
+   - When the timer reaches zero, it triggers an alert using `void stdTimerAlert()`.
+
+#### Key Features/Functions
+
+- **Timer**: Uses timer `htim15` to implement the timer which changes the value `time_left` when called
+  
 ### Stopwatch
 
 #### Overview
