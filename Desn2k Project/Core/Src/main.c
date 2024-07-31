@@ -64,7 +64,6 @@ UART_HandleTypeDef huart2;
 volatile DeviceState deviceState = {0};
 volatile DeviceState previousState = {0};
 
-int inMode = 0;
 int reload = 0;
 int playAlert = 0;
 /* USER CODE END PV */
@@ -163,15 +162,8 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  LightBrightness();
-	  if (hasStateChanged(deviceState) || reload) {
-		  if (reload) {
-			  reload = 0;
-		  }
-		  HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
-		  LCD_Clear();
-		  LCD_SetCursor(0, 0);
-		  CheckDeviceState();
-	  }
+	  CheckDeviceState();
+
   }
   /* USER CODE END 3 */
 }
@@ -953,62 +945,50 @@ void LightBrightness() {
 }
 
 void CheckDeviceState(){
+	// update previous state
+	previousState = deviceState;
 	if (deviceState.mainMode == TIMER_MODE) {
 		// indicate timer mode
-		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
-		if (deviceState.timerMode == TIMER1) {
-			LCD_SendString("Timer Mode:Tim1");
-		} else if (deviceState.timerMode == TIMER2) {
-			LCD_SendString("Timer Mode:Tim2");
-		} else if (deviceState.timerMode == TIMER3) {
-			LCD_SendString("Timer Mode:Tim3");
-		} else {
-			LCD_SendString("Timer Mode:Tim4");
-		}
+//		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
+//		if (deviceState.timerMode == TIMER1) {
+//			LCD_SendString("Timer Mode:Tim1");
+//		} else if (deviceState.timerMode == TIMER2) {
+//			LCD_SendString("Timer Mode:Tim2");
+//		} else if (deviceState.timerMode == TIMER3) {
+//			LCD_SendString("Timer Mode:Tim3");
+//		} else {
+//			LCD_SendString("Timer Mode:Tim4");
+//		}
+//		LCD_Reset();
 	} else {
 		if (deviceState.clockMode == CLOCK) {
 			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
-			int motor = 0;
-			if (motor) {
-				Motor(4096);
-			}
 			if (deviceState.modeState == DISPLAY) {
 				// 	NOTE THIS CLOCK IS HARDCODED, YOU CANT GET REAL TIME UNLESS YOU USE
 				// EXTERNAL SOURCE
-				inMode = 1;
 				DisplayClock();
-				inMode = 0;
-				LCD_Reset();
-				reload = 1;
 			} else {
-				inMode = 1;
 				ConfigClock();
-				inMode = 0;
-				LCD_Reset();
-				reload = 1;
 				deviceState.modeState = DISPLAY;
 			}
 		  shiftByte(0);
 		  latchData();
 		} else if (deviceState.clockMode == ALARM) {
-			LCD_SendString("Clock Mode:Alarm");
+//			LCD_SendString("Clock Mode:Alarm");
 		} else if (deviceState.clockMode == COUNTDOWN) {
 			if (deviceState.modeState == DISPLAY) {
+
 				DisplayTimer();
-				reload = 1;
 			} else {
 				ConfigTimer();
 				deviceState.modeState = DISPLAY;
 			}
 
 		} else {
-			inMode = 1;
 			EnterStopwatch();
-			inMode = 0;
-			LCD_Reset();
-			reload = 1;
 		}
-}
+		LCD_Reset();
+	}
   
 // 	for testing
 //	if (deviceState.modeState == DISPLAY) {
