@@ -15,6 +15,8 @@ int alert_num = 1;
 uint32_t prevseconds_LCD = -1;
 volatile int timerRunning = 0;
 int exitConfig;
+int count = 0;
+int timerDone = 0;
 void ConfigTimer();
 int EnterTimerDuration();
 int CheckTimerDuration(int input_secs);
@@ -26,7 +28,6 @@ void toggleTimer(void);
 void DisplayTimer();
 void stdTimerAlert();
 void updateTimerLCD(uint32_t count);
-int count = 0;
 
 void DisplayTimer() {
 	count ++;
@@ -42,7 +43,10 @@ void DisplayTimer() {
 		} else if (input == '*') {
 			resetTimer();
 			updateTimerLCD(time_left);
-		} else if (timerRunning || time_left == 0) {
+		} else if (timerRunning || timerDone == 1) {
+			if (timerDone == 1) {
+				timerDone = 0;
+			}
 			updateTimerLCD(time_left);
 		}
 		if (hasStateChanged(deviceState)) {
@@ -210,6 +214,10 @@ void DisplayTime(int input_secs) {
 //}
 
 void stdTimerAlert() {
+	if (deviceState.clockMode == COUNTDOWN && deviceState.modeState == DISPLAY) {
+		updateTimerLCD(time_left);
+	}
+	HAL_TIM_Base_Stop_IT(&htim15);
 	Note note = {261, 500};
 	TIM1->ARR = (72000000 / (note.freq * 1000)) - 1;
 	TIM1->CCR3 = TIM1->ARR / 2;
@@ -232,5 +240,6 @@ void stdTimerAlert() {
 		shiftByte(0);
 		latchData();
 	}
+	timerDone = 1;
 }
 
