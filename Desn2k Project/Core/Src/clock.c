@@ -17,6 +17,7 @@
 #define MINUTE 4
 #define SECOND 5
 #define WEEKDAY 6
+#define THIRTYDEGREE 341
 
 const char* week_days[] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
 const int positions[7] = {0, 3, 6, 16, 19, 22, 11};
@@ -494,7 +495,7 @@ void DisplayDateTime()
 
     if (first_time_running == 1) {
     	last_hour = hours;
-        Motor(342 * hours);
+        Motor(THIRTYDEGREE * hours);
         first_time_running = 0;
     } else {
     	if (last_hour != hours) {
@@ -502,9 +503,9 @@ void DisplayDateTime()
     			hours -= 12;
     		}
     		if (last_hour > hours) {
-    			Motor(342 * (12 - last_hour + hours));
+    			Motor(THIRTYDEGREE * (12 - last_hour + hours));
     		} else {
-    			Motor(342 * (hours - last_hour));
+    			Motor(THIRTYDEGREE * (hours - last_hour));
     		}
     		last_hour = hours;
     	}
