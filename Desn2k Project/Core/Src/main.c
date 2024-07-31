@@ -155,7 +155,7 @@ int main(void)
   LCD_SendString("Timer Mode:Tim1");
   LCD_SetCursor(1, 0);
   LCD_SendString("DISPLAY");
-
+  Motor(4000);
   while (1)
   {
     /* USER CODE END WHILE */

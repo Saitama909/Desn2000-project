@@ -27,6 +27,7 @@ void DisplayTimer();
 void stdTimerAlert();
 void updateTimerLCD(uint32_t count);
 int count = 0;
+
 void DisplayTimer() {
 	count ++;
 	LCD_SendString("Standard Timer:");
@@ -38,11 +39,10 @@ void DisplayTimer() {
 		if (input == '#' && time_left != 0 && duration != 0) {
 			toggleTimer();
 			updateTimerLCD(time_left);
-		} if (input == '*') {
+		} else if (input == '*') {
 			resetTimer();
 			updateTimerLCD(time_left);
-		}
-		if (timerRunning) {
+		} else if (timerRunning || time_left == 0) {
 			updateTimerLCD(time_left);
 		}
 		if (hasStateChanged(deviceState)) {
