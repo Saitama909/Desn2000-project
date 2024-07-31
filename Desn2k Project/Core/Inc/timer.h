@@ -9,9 +9,12 @@
 #define INC_TIMER_H_
 
 extern volatile int timer_playing;
+extern volatile TimerMode currentTimer;
+extern volatile TimerMode previousTimer;
 
+bool hasTimerChanged(TimerMode currentTimer);
 void init_timers();
-void display_timer();
+void display_timer(TimerMode timer);
 void update_time(int input_secs);
 void EnterTimer();
 void start_timer(int timer_index);

@@ -11,6 +11,23 @@
 #include "timer.h"
 
 volatile int timer_playing = 0;
+extern volatile DeviceState deviceState;
+extern volatile DeviceState prevState;
+volatile TimerMode currentTimer = {0};
+volatile TimerMode previousTimer = {0};
+
+bool hasTimerChanged(TimerMode currentTimer) {
+    bool changed = false;
+
+    if (currentTimer != previousTimer) {
+        changed = true;
+    }
+
+    // Update previousTimer to the current state
+    previousTimer = currentTimer;
+
+    return changed;
+}
 
 void init_timers() {
     for (int i = 0; i < user.num_timers; i++) {
@@ -19,12 +36,13 @@ void init_timers() {
     }
 }
 
-void display_timer() {
+void display_timer(TimerMode timer) {
 	if (deviceState.mainMode == TIMER_MODE) {
+		LCD_Clear();
 		LCD_SetCursor(0, 0);
-		LCD_SendString(user.timers[deviceState.timerMode].name);
+		LCD_SendString(user.timers[timer].name);
 
-		update_time(user.timers[deviceState.timerMode].remaining_time);
+		update_time(user.timers[timer].remaining_time);
 	}
 }
 
@@ -41,7 +59,7 @@ void update_time(int input_secs) {
 }
 
 void EnterTimer() {
-	display_timer();
+	display_timer(currentTimer);
 
 	while(1) {
 		char input = scan_keypad();
@@ -55,8 +73,12 @@ void EnterTimer() {
 			start_timer(TIMER4);
 		}
 
-		if (hasStateChanged(deviceState)) {
+		if (deviceState.mainMode != previousState.mainMode) {
 			return;
+		}
+
+		if (hasTimerChanged(deviceState.timerMode)) {
+			display_timer(deviceState.timerMode);
 		}
 	}
 }
@@ -80,10 +102,15 @@ void start_timer(int timer_index) {
 	}
 
 	while (user.timers[timer_index].running) {
-		update_time(user.timers[timer_index].remaining_time);
+		if (deviceState.timerMode == timer_index) {
+			update_time(user.timers[timer_index].remaining_time);
+		}
 
 		if (user.timers[timer_index].remaining_time == 0) {
-			display_timer(user.timers[timer_index].remaining_time);
+			if (deviceState.timerMode == timer_index) {
+				update_time(user.timers[timer_index].remaining_time);
+			}
+
 			stop_timer(timer_index);
 			timer_playing = 1;
 			play_timer_alert(timer_index);
@@ -116,5 +143,8 @@ void play_timer_alert(int timer_index) {
 	}
 	TIM1->CCR3 = 0;
 	user.timers[timer_index].remaining_time = user.timers[timer_index].duration;
-	update_time(user.timers[timer_index].remaining_time);
+
+	if (deviceState.timerMode == timer_index) {
+		update_time(user.timers[timer_index].remaining_time);
+	}
 }

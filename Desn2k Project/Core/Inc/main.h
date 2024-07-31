@@ -45,7 +45,7 @@ typedef enum {
 	TIMER1,
 	TIMER2,
 	TIMER3,
-	TIMER4
+	TIMER4,
 } TimerMode;
 
 typedef enum {
@@ -68,7 +68,7 @@ typedef struct {
 } DeviceState;
 
 extern volatile DeviceState deviceState;
-extern volatile DeviceState prevState;
+extern volatile DeviceState previousState;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

@@ -63,6 +63,9 @@ UART_HandleTypeDef huart2;
 volatile DeviceState deviceState = {0};
 volatile DeviceState previousState = {0};
 
+extern volatile TimerMode currentTimer;
+extern volatile TimerMode previousTimer;
+
 int inMode = 0;
 int reload = 0;
 /* USER CODE END PV */
@@ -936,7 +939,7 @@ void CheckDeviceState(){
 		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
 		LCD_Clear();
 		EnterTimer();
-		display_timer();
+		display_timer(deviceState.timerMode);
 	} else {
 		HAL_GPIO_WritePin(GPIOB, LED_D1_Pin, RESET);
 		if (deviceState.clockMode == CLOCK) {
