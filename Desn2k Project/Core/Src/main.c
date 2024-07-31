@@ -155,7 +155,6 @@ int main(void)
   LCD_SendString("Timer Mode:Tim1");
   LCD_SetCursor(1, 0);
   LCD_SendString("DISPLAY");
-  Motor(4000);
   while (1)
   {
     /* USER CODE END WHILE */
@@ -838,7 +837,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 }
 
 bool hasStateChanged(DeviceState currentState) {
-	checkSTDTimer();
+	if (currentState.mainMode == CLOCK_MODE) {
+		checkSTDTimer();
+	}
     bool changed = false;
     if (currentState.mainMode == CLOCK_MODE && currentState.clockMode == STOPWATCH && currentState.modeState == CONFIG) {
     	currentState.modeState = DISPLAY;

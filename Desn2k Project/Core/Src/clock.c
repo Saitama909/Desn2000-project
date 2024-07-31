@@ -55,7 +55,8 @@ uint16_t getBitPattern(uint8_t position);
 
 void DisplayClock() {
 	LCD_Reset();
-	initial  = 1;
+	// as DisplayDateTime only displays if different so initially we want it to display
+	initial = 1;
 	DisplayDateTime();
 	while(1) {
 		if (hasStateChanged(deviceState)) {
