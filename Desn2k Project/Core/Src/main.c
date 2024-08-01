@@ -831,25 +831,36 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		if (user.timers[TIMER1].running && user.timers[TIMER1].remaining_time > 0) {
 			user.timers[TIMER1].remaining_time--;
 		}
-	}
 
-	if (htim == &htim8) {
 		if (user.timers[TIMER2].running && user.timers[TIMER2].remaining_time > 0) {
 			user.timers[TIMER2].remaining_time--;
 		}
-	}
 
-	if (htim == &htim2) {
 		if (user.timers[TIMER3].running && user.timers[TIMER3].remaining_time > 0) {
 			user.timers[TIMER3].remaining_time--;
 		}
-	}
 
-	if (htim == &htim17) {
 		if (user.timers[TIMER4].running && user.timers[TIMER4].remaining_time > 0) {
 			user.timers[TIMER4].remaining_time--;
 		}
+
 	}
+
+//	if (htim == &htim8) {
+//
+//	}
+//
+//	if (htim == &htim2) {
+//		if (user.timers[TIMER3].running && user.timers[TIMER3].remaining_time > 0) {
+//			user.timers[TIMER3].remaining_time--;
+//		}
+//	}
+//
+//	if (htim == &htim17) {
+//		if (user.timers[TIMER4].running && user.timers[TIMER4].remaining_time > 0) {
+//			user.timers[TIMER4].remaining_time--;
+//		}
+//	}
 
 	if (htim == &htim16) {
 		HAL_TIM_Base_Stop_IT(&htim16);

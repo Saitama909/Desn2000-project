@@ -84,25 +84,15 @@ void EnterTimer() {
 }
 
 void start_timer(int timer_index) {
-	user.timers[timer_index].running = 1;
-
-	switch (timer_index) {
-		case TIMER1:
-			HAL_TIM_Base_Start_IT(&htim7);
-			break;
-		case TIMER2:
-			HAL_TIM_Base_Start_IT(&htim8);
-			break;
-		case TIMER3:
-			HAL_TIM_Base_Start_IT(&htim2);
-			break;
-		case TIMER4:
-			HAL_TIM_Base_Start_IT(&htim17);
-			break;
+	// if none of them are running
+	if (!user.timers[TIMER1].running && !user.timers[TIMER2].running && !user.timers[TIMER3].running && !user.timers[TIMER4].running) {
+		HAL_TIM_Base_Start_IT(&htim7);
 	}
 
+	user.timers[timer_index].running = 1;
+
 	while (user.timers[timer_index].running) {
-		if (deviceState.timerMode == timer_index) {
+		if (deviceState.timerMode == timer_index && deviceState.mainMode != TIMER_MODE) {
 			update_time(user.timers[timer_index].remaining_time);
 		}
 
@@ -121,19 +111,8 @@ void start_timer(int timer_index) {
 void stop_timer(int timer_index) {
 	user.timers[timer_index].running = 0;
 
-	switch (timer_index) {
-		case TIMER1:
-			HAL_TIM_Base_Stop_IT(&htim7);
-			break;
-		case TIMER2:
-			HAL_TIM_Base_Stop_IT(&htim8);
-			break;
-		case TIMER3:
-			HAL_TIM_Base_Stop_IT(&htim2);
-			break;
-		case TIMER4:
-			HAL_TIM_Base_Stop_IT(&htim17);
-			break;
+	if (!user.timers[TIMER1].running && !user.timers[TIMER2].running && !user.timers[TIMER3].running && !user.timers[TIMER4].running) {
+		HAL_TIM_Base_Stop_IT(&htim7);
 	}
 }
 

@@ -462,7 +462,7 @@ void play_alert(volatile Song *song) {
     for (int i = 0; i < song->num_notes; i++) {
         Note note = song->notes[i];
         TIM1->ARR = (72000000 / (note.freq * 1000)) - 1;
-        TIM1->CCR3 = TIM1->ARR / 2;
+        TIM1->CCR3 = TIM1->ARR / 4;
 
         // NOTE: WE DO NOT WANT TO USE DELAYS - USE ANOTHER TIMER INSTEAD FOR THE DURATION OF THE NOTE
         __HAL_TIM_SET_AUTORELOAD(&htim16, note.duration * 10 - 1);
