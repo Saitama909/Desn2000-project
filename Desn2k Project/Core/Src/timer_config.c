@@ -35,6 +35,7 @@ uint32_t last_key_time = 0;
 Song songs[6];
 
 volatile int note_playing;
+extern volatile int timer_playing;
 
 void welcome() {
 	LCD_SendString("Hello!");
@@ -51,50 +52,50 @@ void welcome() {
 
 // ONLY CALLED WHEN STATE == CONFIGURE_TIMER_COUNT
 void choose_timer_count() {
-	char num_timers = '\0';
+    char num_timers = '\0';
 
-	while (user.state == CONFIGURE_TIMER_COUNT) {
-		char key = scan_keypad();
+    while (user.state == CONFIGURE_TIMER_COUNT) {
+        char key = scan_keypad();
 
-		if (key) {
-			if (key != '#') {
-				LCD_SetCursor(1, 0);
-				LCD_Data(key);
-				num_timers = key;
-			} else {
-				// Enter key pressed
-				LCD_Clear();
-				LCD_SetCursor(0, 0);
+        if (key) {
+            int num = key - '0';
+            if (num >= 1 && num <= 9) {
+                LCD_SetCursor(1, 0);
+                LCD_Data(key);
+                num_timers = key;
+            } else if (key == '#') {
+                LCD_Clear();
+                LCD_SetCursor(0, 0);
 
-				if (num_timers == '1' || num_timers == '2' || num_timers == '3' || num_timers == '4') {
-					// VALID INPUT
-					num_timers -= '0';
-					user.state = CONFIGURE_TIMER_DURATION;
-					user.num_timers = num_timers;
-				} else {
-					// INVALID INPUT
-					if (num_timers == '\0') {
-						LCD_SendString("You must enter");
-						LCD_SetCursor(1, 0);
-						LCD_SendString("a number");
-					} else {
-						LCD_SendString("Max 4 timers");
-					}
+                if (num_timers >= '1' && num_timers <= '4') {
+                    // VALID INPUT
+                    num_timers -= '0';
+                    user.state = CONFIGURE_TIMER_DURATION;
+                    user.num_timers = num_timers;
+                } else {
+                    // INVALID INPUT
+                    if (num_timers == '\0') {
+                        LCD_SendString("You must enter");
+                        LCD_SetCursor(1, 0);
+                        LCD_SendString("a number");
+                    } else {
+                        LCD_SendString("Max 4 timers");
+                    }
 
-					// Ask user again for number of timers
-					HAL_Delay(1000);
-					LCD_Clear();
-					LCD_SetCursor(0, 0);
-					LCD_SendString("How many timers?");
+                    // Ask user again for number of timers
+                    HAL_Delay(1000);
+                    LCD_Clear();
+                    LCD_SetCursor(0, 0);
+                    LCD_SendString("How many timers?");
 
-					// Reset number of timers
-					num_timers = '\0';
-				}
-			}
-		}
-	}
+                    // Reset number of timers
+                    num_timers = '\0';
+                }
+            }
+        }
+    }
 
-	config_specific_timer();
+    config_specific_timer();
 }
 
 // ONLY CALLED WHEN STATE == CONFIGURE_TIMER_DURATION
@@ -241,7 +242,22 @@ void enter_timer_name(int timer_index) {
 					break;
 				}
 			} else {
-				t9_typing(key, input_text);
+				if (strlen(input_text) < 13) {
+					t9_typing(key, input_text);
+				} else {
+					LCD_Clear();
+					LCD_SetCursor(0, 0);
+					LCD_SendString("Max length is 13");
+					HAL_Delay(1000);
+
+					LCD_Clear();
+					LCD_SetCursor(0, 0);
+					char buffer[22] = "";
+					snprintf(buffer, sizeof(buffer), "Timer %d name", timer_index + 1);
+					LCD_SendString(buffer);
+
+					memset(input_text, 0, 17);
+				}
 			}
 		}
 	}
@@ -471,8 +487,14 @@ void play_alert(volatile Song *song) {
         HAL_TIM_Base_Start_IT(&htim16);
         note_playing = 1;
         while (note_playing) {
-
+//        	if (timer_playing == 0) {
+//				HAL_TIM_Base_Stop_IT(&htim16);
+//				TIM1->CCR3 = 0;
+//				note_playing = 0;
+//				return;
+//			}
         }
     }
     TIM1->CCR3 = 0;
+    timer_playing = 0;
 }
