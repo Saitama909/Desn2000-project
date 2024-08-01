@@ -985,10 +985,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
             last_interrupt_time_sw3 = current_time;
             deviceState.modeState = !deviceState.modeState;
         }
-    } else if (GPIO_Pin == B1_Pin) {
-    	timer_playing = 0;
-    	HAL_TIM_Base_Stop_IT(&htim16);
-    	note_playing = 0;
     }
 }
 
@@ -1047,22 +1043,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		}
 
 	}
-
-//	if (htim == &htim8) {
-//
-//	}
-//
-//	if (htim == &htim2) {
-//		if (user.timers[TIMER3].running && user.timers[TIMER3].remaining_time > 0) {
-//			user.timers[TIMER3].remaining_time--;
-//		}
-//	}
-//
-//	if (htim == &htim17) {
-//		if (user.timers[TIMER4].running && user.timers[TIMER4].remaining_time > 0) {
-//			user.timers[TIMER4].remaining_time--;
-//		}
-//	}
 
 	if (htim == &htim16) {
 		HAL_TIM_Base_Stop_IT(&htim16);
