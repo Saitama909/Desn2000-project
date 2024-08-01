@@ -118,6 +118,17 @@ The clock mode has two states: `DISPLAY` and `CONFIG`. It displays the time in t
 - **RTC Timer**: Both `DISPLAY` and `CONFIG` states use the `RTC` Timer to retrieve the current time. It is initialized in `main.c` through the `hrtc` in the `static void MX_RTC_Init(void)` function.
 - **Initial Display Time**: When the timer is first switched on, the default display time is set to the value of `hrtc`.
 
+### Alarm
+#### Overview
+
+#### Software Structure
+
+#### Subsystems
+
+#### Alarm Functionality
+#### Configuring the Alarm
+#### Displaying the Alarm
+#### Key Features/Functions
 ### Standard Clock Timer
 #### Overview
 
