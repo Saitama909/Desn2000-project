@@ -45,7 +45,7 @@ typedef enum {
 	TIMER1,
 	TIMER2,
 	TIMER3,
-	TIMER4
+	TIMER4,
 } TimerMode;
 
 typedef enum {
@@ -68,13 +68,17 @@ typedef struct {
 } DeviceState;
 
 extern volatile DeviceState deviceState;
-extern volatile DeviceState prevState;
+extern volatile DeviceState previousState;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim6;
+extern TIM_HandleTypeDef htim7;
+extern TIM_HandleTypeDef htim8;
 extern TIM_HandleTypeDef htim16;
+extern TIM_HandleTypeDef htim17;
 extern TIM_HandleTypeDef htim15;
 extern RTC_HandleTypeDef hrtc;
 /* USER CODE END EC */
