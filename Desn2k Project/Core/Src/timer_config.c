@@ -487,12 +487,7 @@ void play_alert(volatile Song *song) {
         HAL_TIM_Base_Start_IT(&htim16);
         note_playing = 1;
         while (note_playing) {
-//        	if (timer_playing == 0) {
-//				HAL_TIM_Base_Stop_IT(&htim16);
-//				TIM1->CCR3 = 0;
-//				note_playing = 0;
-//				return;
-//			}
+
         }
     }
     TIM1->CCR3 = 0;
