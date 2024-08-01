@@ -79,6 +79,7 @@ extern TIM_HandleTypeDef htim7;
 extern TIM_HandleTypeDef htim8;
 extern TIM_HandleTypeDef htim16;
 extern TIM_HandleTypeDef htim17;
+extern TIM_HandleTypeDef htim15;
 extern RTC_HandleTypeDef hrtc;
 /* USER CODE END EC */
 

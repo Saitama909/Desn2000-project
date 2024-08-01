@@ -17,6 +17,7 @@
 #define MINUTE 4
 #define SECOND 5
 #define WEEKDAY 6
+#define THIRTYDEGREE 341
 
 const char* week_days[] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
 const int positions[7] = {0, 3, 6, 16, 19, 22, 11};
@@ -54,7 +55,8 @@ uint16_t getBitPattern(uint8_t position);
 
 void DisplayClock() {
 	LCD_Reset();
-	initial  = 1;
+	// as DisplayDateTime only displays if different so initially we want it to display
+	initial = 1;
 	DisplayDateTime();
 	while(1) {
 		if (hasStateChanged(deviceState)) {
@@ -77,18 +79,18 @@ void LightShiftLED() {
 }
 
 uint16_t getBitPattern(uint8_t position) {
-// Ensure the position wraps around if it exceeds 12
-	if (position > 12) {
-		position = (position - 12);
-	}
-
-	// If position is 0, return 0b0000000000000000
-	if (position == 0) {
-		return 0;
-	}
-	// Calculate the bit pattern with `position` number of 1s starting from the left
-	 return ((1 << position) - 1) << (16 - position);
+    if (position == 0) {
+        return 0b0000000000000000;
+    } else if (position <= 12) {
+        return ((1 << position) - 1) << 4;  // Ensure the first 4 bits are 0
+    } else {
+        return ((1 << (24 - position)) - 1) << 4;  // Ensure the first 4 bits are 0
+    }
 }
+
+
+
+
 
 void shiftBit(uint8_t bit) {
   if (bit) {
@@ -494,7 +496,7 @@ void DisplayDateTime()
 
     if (first_time_running == 1) {
     	last_hour = hours;
-        Motor(342 * hours);
+        Motor(THIRTYDEGREE * hours);
         first_time_running = 0;
     } else {
     	if (last_hour != hours) {
@@ -502,9 +504,9 @@ void DisplayDateTime()
     			hours -= 12;
     		}
     		if (last_hour > hours) {
-    			Motor(342 * (12 - last_hour + hours));
+    			Motor(THIRTYDEGREE * (12 - last_hour + hours));
     		} else {
-    			Motor(342 * (hours - last_hour));
+    			Motor(THIRTYDEGREE * (hours - last_hour));
     		}
     		last_hour = hours;
     	}
