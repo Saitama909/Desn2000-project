@@ -117,6 +117,7 @@ The clock mode has two states: `DISPLAY` and `CONFIG`. It displays the time in t
 
 - **RTC Timer**: Both `DISPLAY` and `CONFIG` states use the `RTC` Timer to retrieve the current time. It is initialized in `main.c` through the `hrtc` in the `static void MX_RTC_Init(void)` function.
 - **Initial Display Time**: When the timer is first switched on, the default display time is set to the value of `hrtc`.
+- **Clock Motor**: When the hour changes or when the clcok mode is first entered the motor will move corresponding to the hour this is implemented through `void DisplayDateTime()` and `void Motor(int steps)`
 
 ### Standard Clock Timer
 #### Overview
@@ -150,7 +151,7 @@ The standard clock timer mode has two states: `DISPLAY` and `CONFIG`. In `DISPLA
      - If the time is less than 30 seconds or more than 1 hour, it shows an error message on the LCD.
      - If the time is valid, it sets `duration` and `time_left` to the entered value in seconds.
 4. **Returning to Display State**:
-   - Exits `ConfigTimer()` and transitions to the `DisplayTimer()` function.
+   - Exits `void ConfigTimer()` and transitions to the `void DisplayTimer()` function.
 
 #### Displaying the Timer
 
@@ -169,6 +170,7 @@ The standard clock timer mode has two states: `DISPLAY` and `CONFIG`. In `DISPLA
 #### Key Features/Functions
 
 - **Timer**: Uses timer `htim15` to implement the timer which changes the value `time_left` when called
+- **Alert**: Uses `stdTimerAlert()` function to play alert which utilises `htim16`
   
 ### Stopwatch
 
@@ -196,8 +198,8 @@ The stopwatch mode has only one state: `DISPLAY`. It displays the elapsed time i
    - Continuously updates the LCD to display the elapsed time in the format `hours:minutes:seconds`.
    - Uses a timer interrupt to keep track of milliseconds.
 3. **Keypad Controls**:
-   - `#`: Toggles the stopwatch between running and stopped states.
-   - `*`: Resets the stopwatch to zero.
+   - '#': Toggles the stopwatch between running and stopped states.
+   - '*': Resets the stopwatch to zero.
 4. **Exiting Display State**:
    - Checks for a change in the device state to exit `void EnterStopwatch()` and return to the main state handling function.
 
@@ -217,6 +219,8 @@ Starts or stops the timer interrupt to control the stopwatch running state.
 
 #### `void resetStopwatch()`
 Stops the timer interrupt and resets the elapsed time to zero.
+
+- **Stopwatch Timer** : Uses `htim6` to start and stop the stopwatch
 
 ## Hardware Components
 ### Microcontroller
@@ -285,7 +289,9 @@ STM32F303RE ARM Microcontroller, controls the other hardware components through 
 
 Of the two only `LDR R32` is used in this project and soley in `void LightBrightness()` in `main.c` to determine the brightness of the LED's based on the environmental lighting
 
+### Power Supply
 
+Needs a wall socket to provide the timer with power
 
 
 
