@@ -160,17 +160,20 @@ int main(void)
 
   init_magic();
   
+  // starting timer for brightness of LDR LED's
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   TIM1->CCR3 = 0;
 
+  // starting timer configuration
   welcome();
+  // needs to be after as its based on the user's duration input
   init_timers();
+
+  // clearing shift registers and LCD
   shiftByte(0);
   latchData();
   LCD_Clear();
   LCD_SetCursor(0, 0);
-  
-  EnterTimer();
   while (1)
   {
     /* USER CODE END WHILE */
@@ -977,7 +980,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
                 deviceState.clockMode = CLOCK;
             }
         }
-    } else if (GPIO_Pin == SW3_Pin) {
+    } else if (GPIO_Pin == SW3_Pin && deviceState.mainMode == CLOCK_MODE) {
         if (current_time - last_interrupt_time_sw3 >= DEBOUNCE_DELAY_MS) {
             last_interrupt_time_sw3 = current_time;
             deviceState.modeState = !deviceState.modeState;
@@ -1007,20 +1010,40 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	}
 
 	if (htim == &htim7) {
-		if (user.timers[TIMER1].running && user.timers[TIMER1].remaining_time > 0) {
-			user.timers[TIMER1].remaining_time--;
+		if (user.timers[TIMER1].running) {
+			if (user.timers[TIMER1].remaining_time > 0) {
+				user.timers[TIMER1].remaining_time--;
+			}
+			if (user.timers[TIMER1].remaining_time == 0) {
+				playFinishedAlert[TIMER1] = 1;
+			}
 		}
 
-		if (user.timers[TIMER2].running && user.timers[TIMER2].remaining_time > 0) {
-			user.timers[TIMER2].remaining_time--;
+		if (user.timers[TIMER2].running) {
+			if (user.timers[TIMER2].remaining_time > 0) {
+				user.timers[TIMER2].remaining_time--;
+			}
+			if (user.timers[TIMER2].remaining_time == 0) {
+				playFinishedAlert[TIMER2] = 1;
+			}
 		}
 
-		if (user.timers[TIMER3].running && user.timers[TIMER3].remaining_time > 0) {
-			user.timers[TIMER3].remaining_time--;
+		if (user.timers[TIMER3].running) {
+			if (user.timers[TIMER3].remaining_time > 0) {
+				user.timers[TIMER3].remaining_time--;
+			}
+			if (user.timers[TIMER3].remaining_time == 0) {
+				playFinishedAlert[TIMER3] = 1;
+			}
 		}
 
-		if (user.timers[TIMER4].running && user.timers[TIMER4].remaining_time > 0) {
-			user.timers[TIMER4].remaining_time--;
+		if (user.timers[TIMER4].running) {
+			if (user.timers[TIMER4].remaining_time > 0) {
+				user.timers[TIMER4].remaining_time--;
+			}
+			if (user.timers[TIMER4].remaining_time == 0) {
+				playFinishedAlert[TIMER4] = 1;
+			}
 		}
 
 	}
@@ -1165,9 +1188,8 @@ void CheckDeviceState(){
 	if (deviceState.mainMode == TIMER_MODE) {
 		// indicate timer mode
 		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
-		LCD_Clear();
 		EnterTimer();
-		display_timer(deviceState.timerMode);
+    LCD_Reset();
 	} else {
 		if (deviceState.clockMode == CLOCK) {
 			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);

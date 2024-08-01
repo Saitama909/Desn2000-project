@@ -13,8 +13,9 @@
 volatile int timer_playing = 0;
 extern volatile DeviceState deviceState;
 extern volatile DeviceState prevState;
-volatile TimerMode currentTimer = {0};
-volatile TimerMode previousTimer = {0};
+volatile TimerMode currentTimer;
+volatile TimerMode previousTimer;
+volatile int playFinishedAlert[4] = {0};
 
 bool hasTimerChanged(TimerMode currentTimer) {
     bool changed = false;
@@ -59,8 +60,8 @@ void update_time(int input_secs) {
 }
 
 void EnterTimer() {
+	previousTimer = deviceState.timerMode;
 	display_timer(currentTimer);
-
 	while(1) {
 		char input = scan_keypad();
 		if (input == 'A') {
@@ -73,12 +74,30 @@ void EnterTimer() {
 			start_timer(TIMER4);
 		}
 
-		if (deviceState.mainMode != previousState.mainMode) {
+		// check if switched to clock mode
+		if (deviceState.mainMode != TIMER_MODE) {
 			return;
 		}
 
+		// check if switched to different timer
 		if (hasTimerChanged(deviceState.timerMode)) {
 			display_timer(deviceState.timerMode);
+		}
+		// if focused on timer and timer running
+		else if (user.timers[deviceState.timerMode].running) {
+			update_time(user.timers[deviceState.timerMode].remaining_time);
+		}
+		// check if any timer has ended
+		int timerEnded = -1;
+		if ((timerEnded = checkTimerEnded()) != -1) {
+			stop_timer(timerEnded);
+			if (timerEnded == deviceState.timerMode) {
+				update_time(user.timers[timerEnded].remaining_time);
+			}
+			timer_playing = 1;
+			play_timer_alert(timerEnded);
+			user.timers[timerEnded].remaining_time = user.timers[timerEnded].duration;
+			playFinishedAlert[timerEnded] = 0;
 		}
 	}
 }
@@ -89,23 +108,24 @@ void start_timer(int timer_index) {
 		HAL_TIM_Base_Start_IT(&htim7);
 	}
 
+	// set to running
 	user.timers[timer_index].running = 1;
 
-	while (user.timers[timer_index].running) {
-		if (deviceState.timerMode == timer_index && deviceState.mainMode != TIMER_MODE) {
-			update_time(user.timers[timer_index].remaining_time);
-		}
-
-		if (user.timers[timer_index].remaining_time == 0) {
-			if (deviceState.timerMode == timer_index) {
-				update_time(user.timers[timer_index].remaining_time);
-			}
-
-			stop_timer(timer_index);
-			timer_playing = 1;
-			play_timer_alert(timer_index);
-		}
-	}
+//	while (user.timers[timer_index].running) {
+//		if (deviceState.timerMode == timer_index && deviceState.mainMode != TIMER_MODE) {
+//			update_time(user.timers[timer_index].remaining_time);
+//		}
+//
+//		if (user.timers[timer_index].remaining_time == 0) {
+//			if (deviceState.timerMode == timer_index) {
+//				update_time(user.timers[timer_index].remaining_time);
+//			}
+//
+//			stop_timer(timer_index);
+//			timer_playing = 1;
+//			play_timer_alert(timer_index);
+//		}
+//	}
 }
 
 void stop_timer(int timer_index) {
@@ -117,13 +137,28 @@ void stop_timer(int timer_index) {
 }
 
 void play_timer_alert(int timer_index) {
-	while (timer_playing) {
-		play_alert(&user.timers[timer_index].alert);
-	}
+
+	play_alert(&user.timers[timer_index].alert);
+
 	TIM1->CCR3 = 0;
 	user.timers[timer_index].remaining_time = user.timers[timer_index].duration;
+}
 
-	if (deviceState.timerMode == timer_index) {
-		update_time(user.timers[timer_index].remaining_time);
+int checkTimerEnded() {
+	if (playFinishedAlert[TIMER1]) {
+		return TIMER1;
 	}
+
+	if (playFinishedAlert[TIMER2]) {
+		return TIMER2;
+	}
+
+	if (playFinishedAlert[TIMER3]) {
+		return TIMER3;
+	}
+
+	if (playFinishedAlert[TIMER4]) {
+		return TIMER4;
+	}
+	return -1;
 }
