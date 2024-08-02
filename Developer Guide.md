@@ -106,7 +106,7 @@ The main method of the user changing states is implemented through the buttons a
 ## Timer Mode
 ### Initial Configuration 
 #### Overview
-The configuration stage has 4 states: `CONFIGURE_TIMER_COUNT`, `CONFIGURE_TIMER_DURATION`, `CONFIGURE_TIMER_NAME`, and `CONFIGURE_TIMER_ALERT`. It is the initial configuration stage fo the user's timers, allowing them to enter the number of timers they desire, as well as customise their duration, name, and alerts.
+The configuration stage has 4 states: `CONFIGURE_TIMER_COUNT`, `CONFIGURE_TIMER_DURATION`, `CONFIGURE_TIMER_NAME`, and `CONFIGURE_TIMER_ALERT`. It is the initial configuration stage fo the user's timers, allowing them to enter the number of timers they desire, as well as customise their duration, name, and alerts. Refer to [this image](https://github.com/Saitama909/Desn2000-project/blob/1ff061949d9f06a18a13b71e1611b81738e4138e/images/timer%20state%20diagram.jpg) for a visual representation of the state transitions for timer configuration and display.
 
 #### Software Structure
 - **Main Functionality Files**: `timer_config.c`
