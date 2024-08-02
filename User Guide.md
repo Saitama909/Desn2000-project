@@ -1,7 +1,6 @@
 # User Guide
 ## Table of Contents
 - [Introduction](#introduction)
-- [Safety Information](#safety-information)
 - [Device Overview](#device-overview)
 - [Operating Instructions](#operating-instructions)
   - [Standard Operations](#standard-operations)
@@ -15,33 +14,10 @@ The focus of the LabSync timer pod is creating a configurable lab timer which co
 ### How to use this User Guide
 This user guide is organised to provide clear and concise information on the LabSync's features and operations. It is structured as follows:
 
-Safety Information: Important guidelines to ensure safe operation.
 Device Overview: An introduction to the timer’s components and features.
 Operating Instructions: Detailed instructions on how to use the timer.
-Support and Contact Information: How to get additional help if needed.
 
 We hope you find this guide helpful. If you have any questions or need further assistance, please refer to the Support and Contact Information section at the end of this document.
-
-## Safety Information
-### General Safety Warnings
-- Keep dry: Ensure the device is kept dry. Exposure to water or other liquids can damage the electronic components and cause an electric shock hazard.
-- Avoid extreme conditions: Do not use the timer in extremely hot, cold, humid, or dusty environments.
-### Electrical Safety
-- Power supply: Only use the provided power supply to operate the timer. Using an incompatible power source can damage the device and may cause a fire hazard.
-- Disconnect when not in use: To avoid the risk of electric shock, unplug the power supply and USB cable when the device is not in use or before cleaning.
-### Handling and Storage Precautions
-- Handle with care: Handle the timer, keypad, LCD screen, switches, LEDs, and LED bar with care. Rough handling can damage the components.
-- Avoid heavy loads: Do not place heavy objects on top of the timer or its components.
-- Storage conditions: Store the timer in a cool, dry place when not in use. Avoid exposure to direct sunlight and extreme temperatures.
-### Environmental Conditions
-- Temperature: Operate the timer within the specified temperature range (typically 0°C to 40°C). Using the timer outside this range can affect its performance and longevity.
-- Humidity: Keep the timer in an environment with relative humidity between 20% and 80%. Excessive moisture can cause damage to electronic components.
-### Keypad and Switches
-- Gentle use: Press the keypad buttons and switches gently. Excessive force can damage the input mechanisms.
-- Cleaning: If cleaning is necessary, use a soft, dry cloth. Avoid using liquid cleaners or sprays directly on the keypad, switches, or LCD screen.
-### LCD Screen and LEDs
-- Avoid direct sunlight: Prolonged exposure to direct sunlight can damage the LCD screen.
-- Brightness: The LEDs and LED bar can be bright, avoid looking directly at them for extended periods to prevent eye strain.
 
 ## Device Overview
 <img src="images/PodDiagram.png" alt="LabSync diagram" width="600" height="400">
