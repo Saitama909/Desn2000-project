@@ -141,6 +141,9 @@ void stop_timer(int timer_index) {
 }
 
 void play_timer_alert(int timer_index) {
+
+//	play_alert(&user.timers[timer_index].alert);
+
 	for (int i = 0; i < user.timers[timer_index].alert.num_notes; i++) {
 		Note note = user.timers[timer_index].alert.notes[i];
 		TIM1->ARR = (72000000 / (note.freq * 1000)) - 1;

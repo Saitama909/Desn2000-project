@@ -196,6 +196,13 @@ void check_timer_duration(int input_secs, int timer_index) {
 		enter_timer_duration(timer_index);
 
 	} else {
+		int hours = input_secs / 10000;
+		int mins = (input_secs % 10000) / 100;
+		int secs = input_secs % 100;
+
+		total_secs = hours * 3600 + mins * 60 + secs;
+
+
 		user.timers[timer_index].duration = total_secs;
 	}
 }
@@ -487,7 +494,12 @@ void play_alert(volatile Song *song) {
         HAL_TIM_Base_Start_IT(&htim16);
         note_playing = 1;
         while (note_playing) {
-
+//        	if (timer_playing == 0) {
+//				HAL_TIM_Base_Stop_IT(&htim16);
+//				TIM1->CCR3 = 0;
+//				note_playing = 0;
+//				return;
+//			}
         }
     }
     TIM1->CCR3 = 0;
