@@ -88,6 +88,14 @@ typedef struct {
     ModeState modeState;
 } DeviceState;
 ```
+### User Struct
+```c
+typedef struct {
+	ConfigState state;
+	int num_timers;
+	Timer timers[4];
+} User;
+```
 
 ### State Navigation
 The main method of the user changing states is implemented through the buttons and their respective pins `SW1_Pin`, `SW2_Pin` and `SW3_Pin`, with the following functionalities
@@ -136,7 +144,8 @@ The configuration stage has 4 states: `CONFIGURE_TIMER_COUNT`, `CONFIGURE_TIMER_
      - If the time is less than 30 seconds or more than 1 hour, it shows an error message on the LCD.
      - If the time is valid, it sets `duration` and `remaining_time` to the entered value in seconds.
 6. **Entering Timer Name**:
-   - Enters `void enter_timer_name(int timer_index)`, allowing the user to input the name of the timer.
+   - Enters `void enter_timer_name(int timer_index)`, allowing the user to input the name of the timer, using T9 typing (similar to old nokia phones) through the `void t9_typing(int key, char *input_text)` function.
+     - The `KeyMap` struct stores the `key` and `*chars` of each key on the keypad and the relevant characters it can input.
    - Displays the entered name on the LCD.
 7. **Validating Timer Name**:
    - After entering the name, the function `bool check_timer_name(int timer_index, char *input_text)` validates the entered name.
@@ -187,6 +196,8 @@ The timer mode has two states after initial configuration: `DISPLAY` and `CONFIG
    - When the timer reaches zero, it triggers an alert for the respective timer using `void play_timer_alert(int timer_index)`.
 
 #### Reconfiguring the Timer
+This process is extremely similar to the initial configuration of the timer.
+
 1. **Initial Reconfiguration**:
    - Begins with `void ReconfigTimer()`, resetting the timer and displaying the prompt to enter the timer duration.
 2. **Entering Timer Duration**:
@@ -215,7 +226,7 @@ The timer mode has two states after initial configuration: `DISPLAY` and `CONFIG
 
 #### Key Features/Functions
 
-- **Hardware Timer**: Uses timer `htim7` to implement the timer which changes the value `remaining_time` when called every second
+- **Hardware Timer**: Uses timer `htim7` to implement the timer which changes the value `remaining_time` when called every second.
 
 ## Standard Clock Modes
 ### Clock
