@@ -120,15 +120,45 @@ The clock mode has two states: `DISPLAY` and `CONFIG`. It displays the time in t
 
 ### Alarm
 #### Overview
+The alarm mode has two states: `DISPLAY` and `CONFIG`. In `DISPLAY` mode it displays the word 'Alarm' on the top row of the LCD and can be enabled, disabled, stopped or snoozed. In the `CONFIG` mode it prompts the user to enter an alarm time by setting the hours, minutes and seconds, in that order.
 
 #### Software Structure
+- **Main Functionality File**: `alarm.c`
+- **State Functions**:
+  - `DISPLAY`: Handled by `void AlarmFunctionality()`.
+  - `CONFIG`: Handled by `void GetUserInputAlarm()`.
 
 #### Subsystems
+- **DISPLAY State**:
+  - Components: **LCD**, **Keypad**, **Microcontroller**.
+- **CONFIG State**:
+  - Components: **LCD**, **Keypad**, **Microcontroller**.
 
 #### Alarm Functionality
 #### Configuring the Alarm
+1. **Initial Configuration**:
+   - Begins with `void GetUserAlarmInput()`, displaying a prompt to configure the alarm.
+2. **Entering Alarm Details**:
+   - Still in `void GetUserAlarmInput()`, allowing the user to input the hours, minutes and seconds in that order.
+   - This function then calls `void SetAlarm(uint8_t hours, uint8_t minutes, uint8_t seconds)`, which sets the RTC to trigger an alarm when that certain time occurs.
+3. **Returning to Display State**:
+   - Exits `void GetUserAlarmInput()` and transitions to the `void DisplayAlarm()` function.
+
 #### Displaying the Alarm
+1. **Initial Display**:
+   - Begins with `void DisplayAlarm()`, clearing the LCD and displaying "Alarm" on the first row.
+2. **Handling Keypad Input**:
+   - 'A' key enables an alarm that has not been completed and is currently disabled.
+   - 'B' key disables an alarm that has not been completed.
+   - 'C' key stops the alarm while it is triggered.
+   - 'D' key snoozes the alarm while it is triggered.
+4. **Completeting the Alarm**:
+   - Once the set time occurs, an alarm gets triggered and a buzzer goes off and an LED lights up.
+
 #### Key Features/Functions
+- **RTC Timer**: The `CONFIG` state use the `RTC` Timer to retrieve the current alarm. It is initialized in `main.c` through the `hrtc` in the `static void MX_RTC_Init(void)` function, and is then set to the new time in `void SetAlarm(uint8_t hours, uint8_t minutes, uint8_t seconds)`. The SetAlarm function calls `HAL_RTC_GetAlarm`, and then edits the hours, minutes and seconds and sets the alarm with `HAL_RTC_SetAlarm_IT`.
+The `DISPLAY` state uses the internal alarm A, triggering `void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)`, in `alarm.c`, when the specific time occurs.
+
 ### Standard Clock Timer
 #### Overview
 
@@ -212,7 +242,7 @@ The stopwatch mode has only one state: `DISPLAY`. It displays the elapsed time i
 4. **Exiting Display State**:
    - Checks for a change in the device state to exit `void EnterStopwatch()` and return to the main state handling function.
 
-#### Key Key Features/Functions
+#### Key Features/Functions
 
 #### `void EnterStopwatch()`
 Initializes the LCD and enters a loop to handle keypad input and update the LCD display.
