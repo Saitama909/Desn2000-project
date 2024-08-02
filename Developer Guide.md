@@ -12,6 +12,20 @@ The `DeviceState` struct is used to store the state of the timer. It consists of
 - `clockMode`: Indicates the subfunctions available in `CLOCK_MODE`. This is of type `ClockMode`. The available modes are `CLOCK`, `ALARM`, `COUNTDOWN`, and `STOPWATCH`.
 - `modeState`: Indicates whether the subfunction is in the displaying or configuring state. This is of type `ModeState` and can be either `DISPLAY` or `CONFIG`.
 
+For timer configuration, the `Timer` struct is used to store the details for each timer. It consists of five fields:
+
+- `duration`: Indicates the length of the timer in seconds.
+- `remaining_time`: Indicates the remaining time left in the timer in seconds.
+- `running`: Indicates whether the timer is currently running or not.
+- `name`: Indicates the name of the timer.
+- `alert`: Indicates the alert that will be played when the timer has finished.
+
+Similarly, the `User` struct is used to store the timer configuration of the user. It consists of four fields:
+
+- `state`: Indicates the stage of timer configuration that the user is currently at, which can either be `CONFIGURE_TIMER_COUNT`, `CONFIGURE_TIMER_DURATION`, `CONFIGURE_TIMER_NAME`, `CONFIGURE_TIMER_ALERT`.
+- `num_timers`: Indicates the number of timers that the user manages.
+- `timers`: Stores the timer information obtained from the configuration stage, with fields from above.
+
 ### Enumerations
 
 #### MainMode
