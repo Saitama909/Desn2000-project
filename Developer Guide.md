@@ -12,6 +12,25 @@ The `DeviceState` struct is used to store the state of the timer. It consists of
 - `clockMode`: Indicates the subfunctions available in `CLOCK_MODE`. This is of type `ClockMode`. The available modes are `CLOCK`, `ALARM`, `COUNTDOWN`, and `STOPWATCH`.
 - `modeState`: Indicates whether the subfunction is in the displaying or configuring state. This is of type `ModeState` and can be either `DISPLAY` or `CONFIG`.
 
+For timer configuration, the `Timer` struct is used to store the details for each timer. It consists of five fields:
+
+- `duration`: Indicates the length of the timer in seconds.
+- `remaining_time`: Indicates the remaining time left in the timer in seconds.
+- `running`: Indicates whether the timer is currently running or not.
+- `name`: Indicates the name of the timer.
+- `alert`: Indicates the alert that will be played when the timer has finished.
+
+Similarly, the `User` struct is used to store the timer configuration of the user. It consists of four fields:
+
+- `state`: Indicates the stage of timer configuration that the user is currently at, which can either be `CONFIGURE_TIMER_COUNT`, `CONFIGURE_TIMER_DURATION`, `CONFIGURE_TIMER_NAME`, `CONFIGURE_TIMER_ALERT`.
+- `num_timers`: Indicates the number of timers that the user manages.
+- `timers`: Stores the timer information obtained from the configuration stage, with fields from above.
+
+Timer alerts are stored in the `Song` struct, which consists of three fields:
+- `notes`: Stores the `freq` and `duration` assigned to each note of the alert.
+- `num_notes`: Stores the number of notes in the alert.
+- `id`: Stores the alert ID.
+
 ### Enumerations
 
 #### MainMode
@@ -50,6 +69,16 @@ typedef enum {
 } ModeState;
 ```
 
+#### ConfigState
+```c
+typedef enum {
+   CONFIGURE_TIMER_COUNT,
+   CONFIGURE_TIMER_DURATION,
+   CONFIGURE_TIMER_NAME,
+   CONFIGURE_TIMER_ALERT
+} ConfigState;
+```
+
 ### DeviceState Struct
 ```c
 typedef struct {
@@ -59,11 +88,146 @@ typedef struct {
     ModeState modeState;
 } DeviceState;
 ```
+### User Struct
+```c
+typedef struct {
+	ConfigState state;
+	int num_timers;
+	Timer timers[4];
+} User;
+```
+
 ### State Navigation
-The main method of the user changing states is implemented through the buttons and their respecive pins `SW1_Pin`, `SW2_Pin` and `SW3_Pin`, with the following functionalities
+The main method of the user changing states is implemented through the buttons and their respective pins `SW1_Pin`, `SW2_Pin` and `SW3_Pin`, with the following functionalities
 - `SW1_Pin` cycles between the main modes
 - `SW2_Pin` cycles between the sub modes of that main mode
 - `SW3_Pin` cycles between the either `DISPLAY` or `CONFIG` modes
+
+## Timer Mode
+### Initial Configuration 
+#### Overview
+The configuration stage has 4 states: `CONFIGURE_TIMER_COUNT`, `CONFIGURE_TIMER_DURATION`, `CONFIGURE_TIMER_NAME`, and `CONFIGURE_TIMER_ALERT`. It is the initial configuration stage fo the user's timers, allowing them to enter the number of timers they desire, as well as customise their duration, name, and alerts.
+
+#### Software Structure
+- **Main Functionality Files**: `timer_config.c`
+- **State Functions**:
+  - `CONFIGURE_TIMER_COUNT`: Handled by `void choose_timer_count()`.
+  - `CONFIGURE_TIMER_DURATION`: Handled by `void enter_timer_duration(int timer_index)`.
+  - `CONFIGURE_TIMER_NAME`: Handled by `void enter_timer_name(int timer_index)`.
+  - `CONFIGURE_TIMER_ALERT`: Handled by `void choose_timer_alert(int timer_index)`.
+
+#### Subsystems
+- **CONFIGURE_TIMER_COUNT State**:
+  - Components: **LCD**, **Keypad**, **Microcontroller**.
+- **CONFIGURE_TIMER_DURATION State**:
+  - Components: **LCD**, **Keypad**, **Microcontroller**.
+- **CONFIGURE_TIMER_NAME State**:
+  - Components: **LCD**, **Keypad**, **Microcontroller**.
+- **CONFIGURE_TIMER_ALERT State**:
+  - Components: **LCD**, **Keypad**, **Buzzer**, **Microcontroller**.
+
+#### Configuring the Timer
+1. **Initial Configuration**:
+   - Begins with `void welcome()`, displaying a welcome message on the LCD.
+2. **Entering Number of Timers**:
+   - Enters `void choose_timer_count()`, allowing the user to input the number of timers they want, through the keypad.
+   - Displays the number of timers on the LCD, only allowing one character to be entered.
+3. **Validating Number of Timers**:
+   - After `#` key is pressed, the same function validates the entered number.
+     - If the number is less than 1 or more than 4, or no number is entered, it shows an error message on the LCD.
+     - If the number is valid, it sets `num_timers` to the entered value in the `User` struct.
+4. **Entering Timer Duration**:
+   - Enters `void enter_timer_duration(int timer_index)`, allowing the user to input the duration in the format `HMMSS`.
+   - Displays the entered time on the LCD.
+5. **Validating Timer Duration**:
+   - After entering the duration, the function `void check_timer_duration(int input_secs, int timer_index)` validates the entered time.
+     - If the time is less than 30 seconds or more than 1 hour, it shows an error message on the LCD.
+     - If the time is valid, it sets `duration` and `remaining_time` to the entered value in seconds.
+6. **Entering Timer Name**:
+   - Enters `void enter_timer_name(int timer_index)`, allowing the user to input the name of the timer, using T9 typing (similar to old nokia phones) through the `void t9_typing(int key, char *input_text)` function.
+     - The `KeyMap` struct stores the `key` and `*chars` of each key on the keypad and the relevant characters it can input.
+   - Displays the entered name on the LCD.
+7. **Validating Timer Name**:
+   - After entering the name, the function `bool check_timer_name(int timer_index, char *input_text)` validates the entered name.
+     - If the name is more than 13 characters, less than 1 character, or already exists with another timer, it shows an error message on the LCD.
+     - If the name is valid, it sets `name` to the entered value.
+8. **Entering Timer Alert**:
+   - Enters `void choose_timer_alert(int timer_index)`, allowing the user to choose the alert associated to the timer.
+   - Previews the chosen alert with the function `void play_alert(volatile Song *song)` and displays the song number on the LCD.
+9. **Validating Timer Alert**:
+   - After choosing the timer alert, the function `bool check_timer_alert(int timer_index, int selected_song)` validates the chosen alert.
+     - If the timer alert already exists on another timer, it shows an error message on the LCD.
+     - If the timer alert is valid, it sets `alert` to the chosen value.
+10. **Moving to Display State**:
+   - Exits `config_specific_timer()` and transitions to the `EnterTimer()` function.
+
+#### Key Features/Functions
+- **Hardware Timers**: Uses timer `htim7` to implement the timer which changes the value `remaining_time` when called every second.
+- **PWM/Buzzer**: Uses timer `htim1` to implement pulse width modification to achieve varying frequencies of the buzzer, and timer `htim16` to achieve varying durations of notes from the buzzer, stopping the buzzer every time it is called.
+
+### Timers
+#### Overview
+The timer mode has two states after initial configuration: `DISPLAY` and `CONFIG`. In `DISPLAY` mode it displays the timer on the bottom row of the LCD in the format ``h:mm:ss`` and can be started, stopped or reset. By default, timer 1 is displayed, and different timers can be displayed by pressing `SW2`. By pressing `A`, `B`, `C`, `D`, it can start timers 1, 2, 3, 4, respectively. In the `CONFIG` mode it prompts the user to enter a timer duration, timer name, and timer alert again, just like the initial configuration stage.
+
+#### Software Structure
+- **Main Functionality Files**: `timer.c`
+- **State Functions**:
+  - `DISPLAY`: Handled by `void EnterTimer()`.
+  - `CONFIG`: Handled by `void ReconfigTimer()`.
+
+#### Subsystems
+- **DISPLAY State**:
+  - Components: **LCD**, **Keypad**, **Microcontroller**.
+- **CONFIG State**:
+  - Components: **LCD**, **Keypad**, **Microcontroller**.
+
+#### Timer Functionality
+#### Displaying the Timer
+
+1. **Initial Display**:
+   - Begins with `void EnterTimer()`, clearing the LCD and displaying the timer number and timer name on the first row.
+   - The second row shows the remaining time, which updates every second.
+2. **Handling Keypad Input**:
+   - 'A', 'B', 'C', 'D' keys toggle the timers 1, 2, 3, 4 respectively.
+3. **Updating Timer on LCD**:
+   - The function `void update_time(int input_secs)` updates the LCD display with the current timer value in `H:MM:SS` format.
+4. **Running the Timer**:
+   - If the timer is running, it decreases the `time_remaining` field in each timer every second and updates the LCD.
+   - When the timer reaches zero, it triggers an alert for the respective timer using `void play_timer_alert(int timer_index)`.
+
+#### Reconfiguring the Timer
+This process is extremely similar to the initial configuration of the timer.
+
+1. **Initial Reconfiguration**:
+   - Begins with `void ReconfigTimer()`, resetting the timer and displaying the prompt to enter the timer duration.
+2. **Entering Timer Duration**:
+   - Enters `void enter_timer_duration(int timer_index)`, allowing the user to input the duration in the format `HMMSS`.
+   - Displays the entered time on the LCD.
+3. **Validating Timer Duration**:
+   - After entering the duration, the function `void check_timer_duration(int input_secs, int timer_index)` validates the entered time.
+     - If the time is less than 30 seconds or more than 1 hour, it shows an error message on the LCD.
+     - If the time is valid, it sets `duration` and `remaining_time` to the entered value in seconds.
+4. **Entering Timer Name**:
+   - Enters `void enter_timer_name(int timer_index)`, allowing the user to input the name of the timer.
+   - Displays the entered name on the LCD.
+5. **Validating Timer Name**:
+   - After entering the name, the function `bool check_timer_name(int timer_index, char *input_text)` validates the entered name.
+     - If the name is more than 13 characters, less than 1 character, or already exists with another timer, it shows an error message on the LCD.
+     - If the name is valid, it sets `name` to the entered value.
+6. **Entering Timer Alert**:
+   - Enters `void choose_timer_alert(int timer_index)`, allowing the user to choose the alert associated to the timer.
+   - Previews the chosen alert with the function `void play_alert(volatile Song *song)` and displays the song number on the LCD.
+7. **Validating Timer Alert**:
+   - After choosing the timer alert, the function `bool check_timer_alert(int timer_index, int selected_song)` validates the chosen alert.
+     - If the timer alert already exists on another timer, it shows an error message on the LCD.
+     - If the timer alert is valid, it sets `alert` to the chosen value.
+8. **Returning to Display State**:
+   - Exits `ReconfigTimer()` and transitions to the `EnterTimer()` function.
+
+#### Key Features/Functions
+
+- **Hardware Timer**: Uses timer `htim7` to implement the timer which changes the value `remaining_time` when called every second.
+
 ## Standard Clock Modes
 ### Clock
 #### Overview
