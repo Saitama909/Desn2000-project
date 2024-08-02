@@ -210,7 +210,7 @@ This feature counts up from 00:00:00.
 
 <img src="images/Stopwatch.jpg" alt="Stopwatch diagram" width="600" height="400">
 
-##### **Confirguring and Displaying the timer**
+##### **Configuring and Displaying the timer**
 After connecting your device and setting it up correctly, to use the stopwatch feature
 - If not already in the standard clock mode, press SW1 to switch to the standard clock mode
 - Press SW2 three times to change from clock mode to stopwatch mode
@@ -220,6 +220,19 @@ Once you're in the stopwatch mode:
 - '*' &rarr; Resets stopwatch to 00:00:00
 
 ### Advanced Features
-TIMERS
+#### Custom Timers
+##### **Configuring the timers**
+After connecting your device and setting it up correctly, to use the custom timers feature
+- If not already in the custom timers mode, press SW1 to switch to the custom timers mode
 
-FINISH
+Once you're in the custom timers mode:
+- You will be asked to input the number of timers you want to use
+
+*Note: This number has to be between 1 and 4
+- Use the **'#'** key on the keypad to enter the input
+
+##### **Displaying the timers**
+
+##### **Reconfiguring the timers**
+
+not complete
