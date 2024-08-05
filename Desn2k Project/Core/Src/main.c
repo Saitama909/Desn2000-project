@@ -25,8 +25,8 @@
 #include "timer_config.h"
 #include "stopwatch.h"
 #include "clock.h"
-#include "timer.h"
 #include "stdtimer.h"
+#include "alarm.h"
 
 #include "stdio.h"
 #include "stdbool.h"
@@ -54,14 +54,10 @@ ADC_HandleTypeDef hadc2;
 RTC_HandleTypeDef hrtc;
 
 TIM_HandleTypeDef htim1;
-TIM_HandleTypeDef htim2;
-TIM_HandleTypeDef htim6;
-TIM_HandleTypeDef htim7;
-TIM_HandleTypeDef htim8;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim15;
 TIM_HandleTypeDef htim16;
-TIM_HandleTypeDef htim17;
 
 UART_HandleTypeDef huart2;
 
@@ -69,10 +65,6 @@ UART_HandleTypeDef huart2;
 volatile DeviceState deviceState = {0};
 volatile DeviceState previousState = {0};
 
-extern volatile TimerMode currentTimer;
-extern volatile TimerMode previousTimer;
-
-int inMode = 0;
 int reload = 0;
 int playAlert = 0;
 /* USER CODE END PV */
@@ -85,10 +77,6 @@ static void MX_RTC_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_TIM16_Init(void);
-static void MX_TIM7_Init(void);
-static void MX_TIM2_Init(void);
-static void MX_TIM17_Init(void);
-static void MX_TIM8_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_TIM15_Init(void);
@@ -98,6 +86,7 @@ void Motor(int steps);
 bool hasStateChanged(DeviceState currentState);
 void LightBrightness();
 void checkSTDTimer();
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -139,10 +128,6 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM6_Init();
   MX_TIM16_Init();
-  MX_TIM7_Init();
-  MX_TIM2_Init();
-  MX_TIM17_Init();
-  MX_TIM8_Init();
   MX_TIM3_Init();
   MX_ADC2_Init();
   MX_TIM15_Init();
@@ -160,20 +145,18 @@ int main(void)
 
   init_magic();
   
-  // starting timer for brightness of LDR LED's
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   TIM1->CCR3 = 0;
 
-  // starting timer configuration
-  welcome();
-  // needs to be after as its based on the user's duration input
-  init_timers();
+//  welcome();
 
-  // clearing shift registers and LCD
   shiftByte(0);
   latchData();
   LCD_Clear();
   LCD_SetCursor(0, 0);
+  LCD_SendString("Timer Mode:Tim1");
+  LCD_SetCursor(1, 0);
+  LCD_SendString("DISPLAY");
   while (1)
   {
     /* USER CODE END WHILE */
@@ -226,18 +209,15 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_RTC
-                              |RCC_PERIPHCLK_TIM1|RCC_PERIPHCLK_TIM16|RCC_PERIPHCLK_TIM15
-                              |RCC_PERIPHCLK_TIM17|RCC_PERIPHCLK_TIM8|RCC_PERIPHCLK_ADC12
-                              |RCC_PERIPHCLK_TIM2|RCC_PERIPHCLK_TIM34;
+                              |RCC_PERIPHCLK_TIM1|RCC_PERIPHCLK_TIM15
+                              |RCC_PERIPHCLK_TIM16|RCC_PERIPHCLK_ADC12
+                              |RCC_PERIPHCLK_TIM34;
   PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
   PeriphClkInit.Adc12ClockSelection = RCC_ADC12PLLCLK_DIV1;
   PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
   PeriphClkInit.Tim1ClockSelection = RCC_TIM1CLK_HCLK;
   PeriphClkInit.Tim15ClockSelection = RCC_TIM15CLK_HCLK;
   PeriphClkInit.Tim16ClockSelection = RCC_TIM16CLK_HCLK;
-  PeriphClkInit.Tim17ClockSelection = RCC_TIM17CLK_HCLK;
-  PeriphClkInit.Tim8ClockSelection = RCC_TIM8CLK_HCLK;
-  PeriphClkInit.Tim2ClockSelection = RCC_TIM2CLK_HCLK;
   PeriphClkInit.Tim34ClockSelection = RCC_TIM34CLK_HCLK;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
@@ -316,6 +296,7 @@ static void MX_RTC_Init(void)
 
   RTC_TimeTypeDef sTime = {0};
   RTC_DateTypeDef sDate = {0};
+  RTC_AlarmTypeDef sAlarm = {0};
 
   /* USER CODE BEGIN RTC_Init 1 */
 
@@ -359,8 +340,27 @@ static void MX_RTC_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN RTC_Init 2 */
 
+  /** Enable the Alarm A
+  */
+  sAlarm.AlarmTime.Hours = 0x18;
+  sAlarm.AlarmTime.Minutes = 0x16;
+  sAlarm.AlarmTime.Seconds = 0x0;
+  sAlarm.AlarmTime.SubSeconds = 0x0;
+  sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  sAlarm.AlarmMask = RTC_ALARMMASK_DATEWEEKDAY;
+  sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+  sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+  sAlarm.AlarmDateWeekDay = 0x1;
+  sAlarm.Alarm = RTC_ALARM_A;
+  if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RTC_Init 2 */
+  HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(RTC_Alarm_IRQn);
   /* USER CODE END RTC_Init 2 */
 
 }
@@ -446,50 +446,6 @@ static void MX_TIM1_Init(void)
 }
 
 /**
-  * @brief TIM2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM2_Init(void)
-{
-
-  /* USER CODE BEGIN TIM2_Init 0 */
-
-  /* USER CODE END TIM2_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  /* USER CODE BEGIN TIM2_Init 1 */
-
-  /* USER CODE END TIM2_Init 1 */
-  htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 7199;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 9999;
-  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
-    {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM2_Init 2 */
-
-  /* USER CODE END TIM2_Init 2 */
- }
-
- /**
   * @brief TIM3 Initialization Function
   * @param None
   * @retval None
@@ -549,6 +505,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 2 */
   HAL_TIM_MspPostInit(&htim3);
+
 }
 
 /**
@@ -590,88 +547,6 @@ static void MX_TIM6_Init(void)
 }
 
 /**
-  * @brief TIM7 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM7_Init(void)
-{
-
-  /* USER CODE BEGIN TIM7_Init 0 */
-
-  /* USER CODE END TIM7_Init 0 */
-
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  /* USER CODE BEGIN TIM7_Init 1 */
-
-  /* USER CODE END TIM7_Init 1 */
-  htim7.Instance = TIM7;
-  htim7.Init.Prescaler = 7199;
-  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim7.Init.Period = 9999;
-  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM7_Init 2 */
-
-  /* USER CODE END TIM7_Init 2 */
-
-}
-
-/**
-  * @brief TIM8 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM8_Init(void)
-{
-
-  /* USER CODE BEGIN TIM8_Init 0 */
-
-  /* USER CODE END TIM8_Init 0 */
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  /* USER CODE BEGIN TIM8_Init 1 */
-
-  /* USER CODE END TIM8_Init 1 */
-  htim8.Instance = TIM8;
-  htim8.Init.Prescaler = 0;
-  htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim8.Init.Period = 65535;
-  htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim8.Init.RepetitionCounter = 0;
-  htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim8) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim8, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim8, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM8_Init 2 */
-
-  /* USER CODE END TIM8_Init 2 */
-}
-
- /*
   * @brief TIM15 Initialization Function
   * @param None
   * @retval None
@@ -682,8 +557,10 @@ static void MX_TIM15_Init(void)
   /* USER CODE BEGIN TIM15_Init 0 */
 
   /* USER CODE END TIM15_Init 0 */
+
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
+
   /* USER CODE BEGIN TIM15_Init 1 */
 
   /* USER CODE END TIM15_Init 1 */
@@ -712,6 +589,7 @@ static void MX_TIM15_Init(void)
   /* USER CODE BEGIN TIM15_Init 2 */
 
   /* USER CODE END TIM15_Init 2 */
+
 }
 
 /**
@@ -743,38 +621,6 @@ static void MX_TIM16_Init(void)
   /* USER CODE BEGIN TIM16_Init 2 */
 
   /* USER CODE END TIM16_Init 2 */
-
-}
-
-/**
-  * @brief TIM17 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM17_Init(void)
-{
-
-  /* USER CODE BEGIN TIM17_Init 0 */
-
-  /* USER CODE END TIM17_Init 0 */
-
-  /* USER CODE BEGIN TIM17_Init 1 */
-
-  /* USER CODE END TIM17_Init 1 */
-  htim17.Instance = TIM17;
-  htim17.Init.Prescaler = 7199;
-  htim17.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim17.Init.Period = 9999;
-  htim17.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim17.Init.RepetitionCounter = 0;
-  htim17.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim17) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM17_Init 2 */
-
-  /* USER CODE END TIM17_Init 2 */
 
 }
 
@@ -970,7 +816,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     } else if (GPIO_Pin == SW2_Pin) {
         if (current_time - last_interrupt_time_sw2 >= DEBOUNCE_DELAY_MS) {
             last_interrupt_time_sw2 = current_time;
-            if (deviceState.mainMode == TIMER_MODE && deviceState.timerMode != user.num_timers - 1) {
+            if (deviceState.mainMode == TIMER_MODE && deviceState.timerMode != TIMER4) {
                 deviceState.timerMode = deviceState.timerMode + 1;
             } else if (deviceState.mainMode == TIMER_MODE) {
                 deviceState.timerMode = TIMER1;
@@ -980,7 +826,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
                 deviceState.clockMode = CLOCK;
             }
         }
-    } else if (GPIO_Pin == SW3_Pin && deviceState.mainMode == CLOCK_MODE) {
+    } else if (GPIO_Pin == SW3_Pin) {
         if (current_time - last_interrupt_time_sw3 >= DEBOUNCE_DELAY_MS) {
             last_interrupt_time_sw3 = current_time;
             deviceState.modeState = !deviceState.modeState;
@@ -1001,45 +847,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			timerRunning = 0;
 			HAL_TIM_Base_Stop_IT(&htim15);
 			playAlert = 1;
-		}
-
-	}
-
-	if (htim == &htim7) {
-		if (user.timers[TIMER1].running) {
-			if (user.timers[TIMER1].remaining_time > 0) {
-				user.timers[TIMER1].remaining_time--;
-			}
-			if (user.timers[TIMER1].remaining_time == 0) {
-				playFinishedAlert[TIMER1] = 1;
-			}
-		}
-
-		if (user.timers[TIMER2].running) {
-			if (user.timers[TIMER2].remaining_time > 0) {
-				user.timers[TIMER2].remaining_time--;
-			}
-			if (user.timers[TIMER2].remaining_time == 0) {
-				playFinishedAlert[TIMER2] = 1;
-			}
-		}
-
-		if (user.timers[TIMER3].running) {
-			if (user.timers[TIMER3].remaining_time > 0) {
-				user.timers[TIMER3].remaining_time--;
-			}
-			if (user.timers[TIMER3].remaining_time == 0) {
-				playFinishedAlert[TIMER3] = 1;
-			}
-		}
-
-		if (user.timers[TIMER4].running) {
-			if (user.timers[TIMER4].remaining_time > 0) {
-				user.timers[TIMER4].remaining_time--;
-			}
-			if (user.timers[TIMER4].remaining_time == 0) {
-				playFinishedAlert[TIMER4] = 1;
-			}
 		}
 
 	}
@@ -1167,14 +974,22 @@ void CheckDeviceState(){
 	hasStateChanged(deviceState);
 	if (deviceState.mainMode == TIMER_MODE) {
 		// indicate timer mode
-		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
-		EnterTimer();
-    LCD_Reset();
+//		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
+//		if (deviceState.timerMode == TIMER1) {
+//			LCD_SendString("Timer Mode:Tim1");
+//		} else if (deviceState.timerMode == TIMER2) {
+//			LCD_SendString("Timer Mode:Tim2");
+//		} else if (deviceState.timerMode == TIMER3) {
+//			LCD_SendString("Timer Mode:Tim3");
+//		} else {
+//			LCD_SendString("Timer Mode:Tim4");
+//		}
+//		LCD_Reset();
 	} else {
 		if (deviceState.clockMode == CLOCK) {
 			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
 			if (deviceState.modeState == DISPLAY) {
-				// NOTE THIS CLOCK IS HARDCODED, YOU CANT GET REAL TIME UNLESS YOU USE
+				// 	NOTE THIS CLOCK IS HARDCODED, YOU CANT GET REAL TIME UNLESS YOU USE
 				// EXTERNAL SOURCE
 				DisplayClock();
 			} else {
@@ -1184,7 +999,14 @@ void CheckDeviceState(){
 		  shiftByte(0);
 		  latchData();
 		} else if (deviceState.clockMode == ALARM) {
-//			LCD_SendString("Clock Mode:Alarm");
+			if (deviceState.modeState == DISPLAY) {
+				//GetUserAlarmInput();
+				//LCD_SendString("Alarm!");
+				DisplayAlarm();
+			} else {
+				GetUserAlarmInput();
+				deviceState.modeState = DISPLAY;
+			}
 		} else if (deviceState.clockMode == COUNTDOWN) {
 			if (deviceState.modeState == DISPLAY) {
 
