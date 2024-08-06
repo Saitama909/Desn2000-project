@@ -43,15 +43,19 @@ void display_timer(TimerMode timer) {
 		LCD_Clear();
 		LCD_SetCursor(0, 0);
 		char buffer[4] = "";
+
+		// Display timer number + name
 		snprintf(buffer, sizeof(buffer), "%d: ", timer + 1);
 		LCD_SendString(buffer);
 		LCD_SendString(user.timers[timer].name);
 
+		// Display timer duration
 		update_time(user.timers[timer].remaining_time);
 	}
 }
 
 void update_time(int input_secs) {
+	// Update LCD with current time left on timer
 	int hours = input_secs / 3600;
 	int mins = (input_secs % 3600) / 60;
 	int secs = input_secs % 60;
@@ -66,8 +70,11 @@ void update_time(int input_secs) {
 void EnterTimer() {
 	previousTimer = deviceState.timerMode;
 	display_timer(currentTimer);
+
 	while(1) {
 		char input = scan_keypad();
+
+		// Start relevant timers
 		if (input == 'A') {
 			start_timer(TIMER1);
 		} else if (input == 'B') {
@@ -141,12 +148,12 @@ void ReconfigureTimer(int timer_index) {
 }
 
 void start_timer(int timer_index) {
-	// if none of them are running
+	// If none of them are running
 	if (!user.timers[TIMER1].running && !user.timers[TIMER2].running && !user.timers[TIMER3].running && !user.timers[TIMER4].running) {
 		HAL_TIM_Base_Start_IT(&htim7);
 	}
 
-	// set to running
+	// Set to running
 	user.timers[timer_index].running = 1;
 }
 

@@ -9,7 +9,6 @@
 #include "lcd_keypad.h"
 #include "timer_config.h"
 
-
 volatile User user = {
 	.state = CONFIGURE_TIMER_COUNT,
 	.num_timers = 0
@@ -54,16 +53,20 @@ void welcome() {
 void choose_timer_count() {
     char num_timers = '\0';
 
+    // Scan for inputs
     while (user.state == CONFIGURE_TIMER_COUNT) {
         char key = scan_keypad();
 
         if (key) {
             int num = key - '0';
+            // enter input
             if (num >= 1 && num <= 9) {
                 LCD_SetCursor(1, 0);
                 LCD_Data(key);
                 num_timers = key;
-            } else if (key == '#') {
+            }
+            // Check input if enter key is pressed
+            else if (key == '#') {
                 LCD_Clear();
                 LCD_SetCursor(0, 0);
 
@@ -135,6 +138,7 @@ void enter_timer_duration(int timer_index) {
 	LCD_SetCursor(1, 0);
 	display_time(input_secs);
 
+	// Scan for input
 	while (1) {
 		char key = scan_keypad();
 		if (key) {
@@ -142,7 +146,9 @@ void enter_timer_duration(int timer_index) {
 			if (num >= 0 && num <= 9) {
 				input_secs = input_secs * 10 + num;
 				display_time(input_secs);
-			} else if (key == '#') {
+			}
+			// Check input
+			else if (key == '#') {
 				check_timer_duration(input_secs, timer_index);
 				break;
 			}
@@ -151,6 +157,7 @@ void enter_timer_duration(int timer_index) {
 }
 
 void display_time(int input_secs) {
+	// Extract hours, mins, secs (just for display purposes)
 	int hours = input_secs / 10000;
 	int mins = (input_secs % 10000) / 100;
 	int secs = input_secs % 100;
@@ -163,8 +170,13 @@ void display_time(int input_secs) {
 }
 
 void check_timer_duration(int input_secs, int timer_index) {
-	int total_secs = input_secs;
+	// Calculate total secs
+	int hours = input_secs / 10000;
+	int mins = (input_secs % 10000) / 100;
+	int secs = input_secs % 100;
+	int total_secs = hours * 3600 + mins * 60 + secs;
 
+	// TOO LITTLE TIME
 	if (total_secs < 0) {
 		LCD_Clear();
 		LCD_SetCursor(0, 0);
@@ -179,8 +191,10 @@ void check_timer_duration(int input_secs, int timer_index) {
 		LCD_SendString(buffer);
 		LCD_SetCursor(1, 0);
 		enter_timer_duration(timer_index);
+	}
 
-	} else if (total_secs > 3600) {
+	// TOO MUCH TIME
+	else if (total_secs > 3600) {
 		LCD_Clear();
 		LCD_SetCursor(0, 0);
 		LCD_SendString("Maximum time is");
@@ -194,15 +208,10 @@ void check_timer_duration(int input_secs, int timer_index) {
 		LCD_SendString(buffer);
 		LCD_SetCursor(1, 0);
 		enter_timer_duration(timer_index);
+	}
 
-	} else {
-		int hours = input_secs / 10000;
-		int mins = (input_secs % 10000) / 100;
-		int secs = input_secs % 100;
-
-		total_secs = hours * 3600 + mins * 60 + secs;
-
-
+	// VALID AMOUNT OF TIME
+	else {
 		user.timers[timer_index].duration = total_secs;
 		user.timers[timer_index].remaining_time = total_secs;
 	}
@@ -212,10 +221,13 @@ void enter_timer_name(int timer_index) {
 	LCD_SetCursor(1, 0);
 	char input_text[17] = "";
 
+	// Scan input
 	while (1) {
 		char key = scan_keypad();
 		if (key) {
+			// Enter key pressed
 			if (key == '#') {
+				// Check if name already exists
 				if (check_timer_name(timer_index, input_text)) {
 					LCD_Clear();
 					LCD_SetCursor(0, 0);
@@ -231,7 +243,10 @@ void enter_timer_name(int timer_index) {
 					LCD_SendString(buffer);
 
 					memset(input_text, 0, 17);
-				} else if (!strcmp(input_text, "")) {
+				}
+
+				// Check if no name was entered
+				else if (!strcmp(input_text, "")) {
 					LCD_Clear();
 					LCD_SetCursor(0, 0);
 					LCD_SendString("You must provide");
@@ -244,15 +259,21 @@ void enter_timer_name(int timer_index) {
 					char buffer[22] = "";
 					snprintf(buffer, sizeof(buffer), "Timer %d name", timer_index + 1);
 					LCD_SendString(buffer);
-				} else {
+				}
+
+				// Set string to timer
+				else {
 					strncpy(user.timers[timer_index].name, input_text, 16);
 					user.timers[timer_index].name[16] = '\0';
 					break;
 				}
 			} else {
+				// Scan for inputs using T9 typing (like an old nokia phone)
 				if (strlen(input_text) < 13) {
 					t9_typing(key, input_text);
-				} else {
+				}
+				// Show error message for long name
+				else {
 					LCD_Clear();
 					LCD_SetCursor(0, 0);
 					LCD_SendString("Max length is 13");
@@ -274,6 +295,7 @@ void enter_timer_name(int timer_index) {
 }
 
 bool check_timer_name(int timer_index, char *input_text) {
+	// Check for duplicate names
 	for (int i = 0; i < user.num_timers; i++) {
 		if (i == timer_index) continue;
 		if (!strcmp(input_text, user.timers[i].name)) {
@@ -342,7 +364,11 @@ void choose_timer_alert(int timer_index) {
 				LCD_SetCursor(1, 15);
 				LCD_Data(key);
 				play_alert(&songs[num - 1]);
-			} else if (key == '#') {
+			}
+
+			// Enter key is pressed
+			else if (key == '#') {
+				// Check for duplicate songs
 				if (check_timer_alert(timer_index, selected_song)) {
 					LCD_Clear();
 					LCD_SetCursor(0, 0);
@@ -360,7 +386,10 @@ void choose_timer_alert(int timer_index) {
 					LCD_SendString("Pick song 1-6: ");
 
 					selected_song = -1;
-				} else if (selected_song == -1) {
+				}
+
+				// Check for no song selection
+				else if (selected_song == -1) {
 					LCD_Clear();
 					LCD_SetCursor(0, 0);
 					LCD_SendString("You must select");
@@ -375,7 +404,10 @@ void choose_timer_alert(int timer_index) {
 					LCD_SendString(buffer);
 					LCD_SetCursor(1, 0);
 					LCD_SendString("Pick song 1-6: ");
-				} else {
+				}
+
+				// Set song to timer alert
+				else {
 					user.timers[timer_index].alert = songs[selected_song];
 					break;
 				}
@@ -385,6 +417,7 @@ void choose_timer_alert(int timer_index) {
 }
 
 bool check_timer_alert(int timer_index, int selected_song) {
+	// Check for duplicate alerts
 	for (int i = 0; i < user.num_timers; i++) {
 		if (i == timer_index) continue;
 		if (selected_song == user.timers[i].alert.id) {
@@ -395,6 +428,7 @@ bool check_timer_alert(int timer_index, int selected_song) {
 }
 
 void init_alerts() {
+	// Frequency (in hz) + duration (in ms)
     Song c_maj_arp = {
         .notes = {
             {261, 500},
