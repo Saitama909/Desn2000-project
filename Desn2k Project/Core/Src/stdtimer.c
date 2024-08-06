@@ -29,6 +29,7 @@ void DisplayTimer();
 void stdTimerAlert();
 void updateTimerLCD(uint32_t count);
 
+// main timer display function
 void DisplayTimer() {
 	count ++;
 	LCD_SendString("Standard Timer:");
@@ -38,12 +39,15 @@ void DisplayTimer() {
 	while(1) {
 		char input = scan_keypad();
 		if (input == '#' && time_left != 0 && duration != 0) {
+			// toggle timer
 			toggleTimer();
 			updateTimerLCD(time_left);
 		} else if (input == '*') {
+			// reset timer
 			resetTimer();
 			updateTimerLCD(time_left);
 		} else if (timerRunning || timerDone == 1) {
+			// update LCD when timer is done
 			if (timerDone == 1) {
 				timerDone = 0;
 			}
@@ -86,7 +90,7 @@ void updateTimerLCD(uint32_t count) {
     LCD_SendString(buffer);
 }
 
-
+// main timer configuration function
 void ConfigTimer() {
 	exitConfig = 0;
 	resetTimer();
@@ -137,6 +141,7 @@ int EnterTimerDuration() {
 	}
 }
 
+// check if timer duration is valid
 int CheckTimerDuration(int input_secs) {
 
 	int total_secs = ConvertToSeconds(input_secs);

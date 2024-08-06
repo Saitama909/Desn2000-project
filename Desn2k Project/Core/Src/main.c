@@ -179,7 +179,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  // adjust the LED's based on ambient light
 	  LightBrightness();
+	  // check the current state of the timer
 	  CheckDeviceState();
 
   }
@@ -985,11 +987,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
             last_interrupt_time_sw3 = current_time;
             deviceState.modeState = !deviceState.modeState;
         }
-    } else if (GPIO_Pin == SW3_Pin && deviceState.mainMode == TIMER_MODE) {
-    	if (current_time - last_interrupt_time_sw3 >= DEBOUNCE_DELAY_MS) {
-			last_interrupt_time_sw3 = current_time;
-			deviceState.modeState = CONFIG;
-		}
+    } else if (GPIO_Pin == B1_Pin) {
+    	timer_playing = 0;
+    	HAL_TIM_Base_Stop_IT(&htim16);
+    	note_playing = 0;
     }
 }
 
@@ -1049,6 +1050,22 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 	}
 
+//	if (htim == &htim8) {
+//
+//	}
+//
+//	if (htim == &htim2) {
+//		if (user.timers[TIMER3].running && user.timers[TIMER3].remaining_time > 0) {
+//			user.timers[TIMER3].remaining_time--;
+//		}
+//	}
+//
+//	if (htim == &htim17) {
+//		if (user.timers[TIMER4].running && user.timers[TIMER4].remaining_time > 0) {
+//			user.timers[TIMER4].remaining_time--;
+//		}
+//	}
+
 	if (htim == &htim16) {
 		HAL_TIM_Base_Stop_IT(&htim16);
 		TIM1->CCR3 = 0;
@@ -1056,11 +1073,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	}
 }
 
+// checks if the timer's state has changed
 bool hasStateChanged(DeviceState currentState) {
 	if (currentState.mainMode == CLOCK_MODE) {
 		checkSTDTimer();
 	}
     bool changed = false;
+    // no config mode for the timer
     if (currentState.mainMode == CLOCK_MODE && currentState.clockMode == STOPWATCH && currentState.modeState == CONFIG) {
     	currentState.modeState = DISPLAY;
     }
@@ -1077,6 +1096,7 @@ bool hasStateChanged(DeviceState currentState) {
     return changed;
 }
 
+// checks if the standard clock timer needs to play the alert
 void checkSTDTimer() {
 	if (playAlert && deviceState.mainMode == CLOCK_MODE) {
 		 stdTimerAlert();
@@ -1085,6 +1105,7 @@ void checkSTDTimer() {
 }
 
 void Motor(int steps) {
+	// half step motor code
     int step = 0;
     for (int i = 0; i < steps; i++) {
     	switch(step) {
@@ -1182,6 +1203,8 @@ void CheckDeviceState(){
 				// NOTE THIS CLOCK IS HARDCODED, YOU CANT GET REAL TIME UNLESS YOU USE
 				// EXTERNAL SOURCE
 				DisplayClock();
+				shiftByte(0);
+				latchData();
 			} else {
 				ConfigClock();
 				deviceState.modeState = DISPLAY;
