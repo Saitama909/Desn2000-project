@@ -27,6 +27,7 @@
 #include "clock.h"
 #include "timer.h"
 #include "stdtimer.h"
+#include "alarm.h"
 
 #include "stdio.h"
 #include "stdbool.h"
@@ -318,6 +319,8 @@ static void MX_RTC_Init(void)
 
   RTC_TimeTypeDef sTime = {0};
   RTC_DateTypeDef sDate = {0};
+  RTC_AlarmTypeDef sAlarm = {0};
+
 
   /* USER CODE BEGIN RTC_Init 1 */
 
@@ -361,6 +364,24 @@ static void MX_RTC_Init(void)
   {
     Error_Handler();
   }
+
+  /** Enable the Alarm A
+	*/
+	sAlarm.AlarmTime.Hours = 0x18;
+	sAlarm.AlarmTime.Minutes = 0x16;
+	sAlarm.AlarmTime.Seconds = 0x0;
+	sAlarm.AlarmTime.SubSeconds = 0x0;
+	sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+	sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+	sAlarm.AlarmMask = RTC_ALARMMASK_DATEWEEKDAY;
+	sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+	sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+	sAlarm.AlarmDateWeekDay = 0x1;
+	sAlarm.Alarm = RTC_ALARM_A;
+	if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BCD) != HAL_OK)
+	{
+		Error_Handler();
+	}
   /* USER CODE BEGIN RTC_Init 2 */
 
   /* USER CODE END RTC_Init 2 */
@@ -1212,7 +1233,12 @@ void CheckDeviceState(){
 		  shiftByte(0);
 		  latchData();
 		} else if (deviceState.clockMode == ALARM) {
-//			LCD_SendString("Clock Mode:Alarm");
+			if (deviceState.modeState == DISPLAY) {
+				DisplayAlarm();
+			} else {
+				GetUserAlarmInput();
+				deviceState.modeState = DISPLAY;
+			}
 		} else if (deviceState.clockMode == COUNTDOWN) {
 			if (deviceState.modeState == DISPLAY) {
 
