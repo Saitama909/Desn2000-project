@@ -204,6 +204,7 @@ void check_timer_duration(int input_secs, int timer_index) {
 
 
 		user.timers[timer_index].duration = total_secs;
+		user.timers[timer_index].remaining_time = total_secs;
 	}
 }
 
@@ -273,7 +274,8 @@ void enter_timer_name(int timer_index) {
 }
 
 bool check_timer_name(int timer_index, char *input_text) {
-	for (int i = 0; i < timer_index; i++) {
+	for (int i = 0; i < user.num_timers; i++) {
+		if (i == timer_index) continue;
 		if (!strcmp(input_text, user.timers[i].name)) {
 			return true;
 		}
@@ -383,7 +385,8 @@ void choose_timer_alert(int timer_index) {
 }
 
 bool check_timer_alert(int timer_index, int selected_song) {
-	for (int i = 0; i < timer_index; i++) {
+	for (int i = 0; i < user.num_timers; i++) {
+		if (i == timer_index) continue;
 		if (selected_song == user.timers[i].alert.id) {
 			return true;
 		}
@@ -494,12 +497,7 @@ void play_alert(volatile Song *song) {
         HAL_TIM_Base_Start_IT(&htim16);
         note_playing = 1;
         while (note_playing) {
-//        	if (timer_playing == 0) {
-//				HAL_TIM_Base_Stop_IT(&htim16);
-//				TIM1->CCR3 = 0;
-//				note_playing = 0;
-//				return;
-//			}
+
         }
     }
     TIM1->CCR3 = 0;

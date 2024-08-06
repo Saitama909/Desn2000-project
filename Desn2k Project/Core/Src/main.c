@@ -985,6 +985,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
             last_interrupt_time_sw3 = current_time;
             deviceState.modeState = !deviceState.modeState;
         }
+    } else if (GPIO_Pin == SW3_Pin && deviceState.mainMode == TIMER_MODE) {
+    	if (current_time - last_interrupt_time_sw3 >= DEBOUNCE_DELAY_MS) {
+			last_interrupt_time_sw3 = current_time;
+			deviceState.modeState = CONFIG;
+		}
     }
 }
 
@@ -1169,7 +1174,7 @@ void CheckDeviceState(){
 		// indicate timer mode
 		HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
 		EnterTimer();
-    LCD_Reset();
+		LCD_Reset();
 	} else {
 		if (deviceState.clockMode == CLOCK) {
 			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
