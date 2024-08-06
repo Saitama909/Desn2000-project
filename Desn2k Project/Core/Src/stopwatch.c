@@ -13,18 +13,13 @@
 volatile uint32_t seconds = 0;
 int stopwatchRunning = 0;
 uint32_t prevseconds;
-uint32_t lapTimes[2] = {0, 0}; // Array to store up to two lap times
-int lapCount = 0; // Count of laps taken
 
 void toggleStopwatch(void);
-void updateLapDisplay();
-void lapStopwatch(void);
 
 // main stopwatch function
 void EnterStopwatch() {
 	LCD_Reset();
 	updateLCD(seconds);
-	updateLapDisplay();
 	prevseconds = -1;
 	while(1) {
 		char input = scan_keypad();
@@ -32,8 +27,6 @@ void EnterStopwatch() {
 			toggleStopwatch();
 		} if (input == '*') {
 			resetStopwatch();
-		} if (input == '0') {
-			lapStopwatch();
 		}
 		updateLCD(seconds);
 		if (stopwatchRunning) {
@@ -80,35 +73,5 @@ void resetStopwatch(void) {
     HAL_TIM_Base_Stop_IT(&htim6);
     seconds = 0;
     stopwatchRunning = false;
-    lapTimes[1] = 0;
-    lapTimes[2] = 0;
-    lapCount = 0;
-    LCD_Clear();
-}
-
-// lap functionality
-void lapStopwatch(void) {
-	// only allows 2 laps
-    if (lapCount < 2) {
-        lapTimes[lapCount] = seconds;
-        lapCount++;
-    }
-    updateLapDisplay();
-}
-
-// update the lap screen
-void updateLapDisplay() {
-    if (lapCount > 0) {
-        char lapBuffer[9];
-        snprintf(lapBuffer, sizeof(lapBuffer), "%02lu:%02lu:%02lu", lapTimes[0] / 3600, (lapTimes[0] % 3600) / 60, lapTimes[0] % 60);
-        LCD_SetCursor(1, 0);
-        LCD_SendString(lapBuffer);
-    }
-    if (lapCount > 1) {
-        char lapBuffer[9];
-        snprintf(lapBuffer, sizeof(lapBuffer), "%02lu:%02lu:%02lu", lapTimes[1] / 3600, (lapTimes[1] % 3600) / 60, lapTimes[1] % 60);
-        LCD_SetCursor(1, 8);
-        LCD_SendString(lapBuffer);
-    }
 }
 
