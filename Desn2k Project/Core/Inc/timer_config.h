@@ -10,12 +10,12 @@
 
 #include "stdbool.h"
 
-enum State {
+typedef enum {
 	CONFIGURE_TIMER_COUNT,
 	CONFIGURE_TIMER_DURATION,
 	CONFIGURE_TIMER_NAME,
 	CONFIGURE_TIMER_ALERT
-};
+} ConfigState;
 
 typedef struct {
     char key;
@@ -42,7 +42,7 @@ typedef struct {
 } Timer;
 
 typedef struct {
-	enum State state;
+	ConfigState state;
 	int num_timers;
 	Timer timers[4];
 } User;
