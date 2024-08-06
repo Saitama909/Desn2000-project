@@ -19,6 +19,7 @@ void init_timers();
 void display_timer(TimerMode timer);
 void update_time(int input_secs);
 void EnterTimer();
+void ReconfigureTimer(int timer_index);
 void start_timer(int timer_index);
 void stop_timer(int timer_index);
 void play_timer_alert(int timer_index);
