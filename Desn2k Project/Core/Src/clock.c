@@ -67,12 +67,11 @@ void DisplayClock() {
 	}
 }
 
+// shift register LED's light up based on time
 void LightShiftLED() {
 	RTC_TimeTypeDef sTime = {0};
 	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BCD);
 	uint32_t hours = bcd_to_dec(sTime.Hours);
-//	uint32_t minutes = bcd_to_dec(sTime.Minutes);
-//	uint32_t seconds = bcd_to_dec(sTime.Seconds);
 	uint16_t pattern = getBitPattern(hours);
 	shiftByte(pattern);
 	latchData();
@@ -120,6 +119,7 @@ void latchData(void) {
   HAL_Delay(1);
 }
 
+// main clock configuration function
 void ConfigClock() {
 	LCD_Reset();
 	for (int i = 0; i < 7; i++) {
@@ -257,6 +257,7 @@ void SetTime() {
 	HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD);
 	HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD);
 }
+
 void GetCurrentTime() {
 	RTC_TimeTypeDef sTime = {0};
 	RTC_DateTypeDef sDate = {0};
@@ -349,6 +350,7 @@ void DisplayEditedTime() {
 		    initial = 0;
 }
 
+// increases the selection component
 void IncreaseSelection() {
 	if (pos == DAY) {
 		if (buffer[DAY] < 31) {
@@ -395,6 +397,7 @@ void IncreaseSelection() {
 	}
 }
 
+// decrease the selected component
 void DecreaseSelection() {
 	if (buffer[pos] > 0) {
 		if (pos != WEEKDAY) {
@@ -404,6 +407,7 @@ void DecreaseSelection() {
 		}
 	}
 }
+
 // Display date and time on the LCD
 void DisplayDateTime()
 {

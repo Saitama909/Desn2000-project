@@ -16,6 +16,7 @@ uint32_t prevseconds;
 
 void toggleStopwatch(void);
 
+// main stopwatch function
 void EnterStopwatch() {
 	LCD_Reset();
 	updateLCD(seconds);
@@ -58,6 +59,7 @@ void updateLCD(uint32_t count) {
     LCD_SendString(buffer);
 }
 
+// toggles the stopwatch
 void toggleStopwatch(void) {
 	stopwatchRunning = !stopwatchRunning;
 	if (stopwatchRunning) {
