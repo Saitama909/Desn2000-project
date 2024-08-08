@@ -84,6 +84,12 @@ void AlarmFunctionality() {
 
 void DisplayAlarm() {
 		LCD_SendString("Alarm");
+		RTC_AlarmTypeDef sAlarm = {0};
+		HAL_RTC_GetAlarm(&hrtc, &sAlarm, RTC_ALARM_A, FORMAT_BIN);
+		char buffer[17];
+		snprintf(buffer, sizeof(buffer), "%02d:%02d:%02d", sAlarm.AlarmTime.Hours, sAlarm.AlarmTime.Minutes, sAlarm.AlarmTime.Seconds);
+		LCD_SetCursor(0, 7);
+		LCD_SendString(buffer);
 		while(1) {
 				AlarmFunctionality();
 				if (hasStateChanged(deviceState)) {
@@ -172,8 +178,8 @@ void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc) {
 					TIM1->ARR = 299;
 					TIM1->CCR3 = TIM1->ARR / 2;
 					// Adds a delay
-					for(uint32_t i = 0; i < 0xFFF; i++){
-							for(uint32_t j = 0; j < 0xFFF; j++){
+					for(uint32_t i = 0; i < 0x0FF; i++){
+							for(uint32_t j = 0; j < 0x0FF; j++){
 
 							}
 					}

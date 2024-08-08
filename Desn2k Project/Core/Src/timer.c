@@ -115,6 +115,9 @@ void EnterTimer() {
 			play_timer_alert(timerEnded);
 			user.timers[timerEnded].remaining_time = user.timers[timerEnded].duration;
 			playFinishedAlert[timerEnded] = 0;
+			if (timerEnded == deviceState.timerMode) {
+				update_time(user.timers[timerEnded].remaining_time);
+			}
 		}
 	}
 }

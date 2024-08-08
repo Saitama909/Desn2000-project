@@ -177,7 +177,7 @@ void check_timer_duration(int input_secs, int timer_index) {
 	int total_secs = hours * 3600 + mins * 60 + secs;
 
 	// TOO LITTLE TIME
-	if (total_secs < 0) {
+	if (total_secs < 30) {
 		LCD_Clear();
 		LCD_SetCursor(0, 0);
 		LCD_SendString("Minimum time is");
